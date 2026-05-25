@@ -2,7 +2,6 @@
 
 #[ink::contract]
 pub mod registry {
-    use ink::prelude::string::String;
     use ink::storage::Mapping;
 
     // ── Namehash helpers ─────────────────────────────────────────────────────
@@ -37,7 +36,7 @@ pub mod registry {
         owners: Mapping<[u8; 32], AccountId>,
         resolvers: Mapping<[u8; 32], AccountId>,
         ttls: Mapping<[u8; 32], u64>,
-        operators: Mapping<([u8; 32], AccountId), bool>,
+        operators: Mapping<(AccountId, AccountId), bool>,
         root: AccountId,
     }
 
@@ -112,7 +111,7 @@ pub mod registry {
 
         fn is_authorized(&self, node: &[u8; 32], caller: &AccountId) -> bool {
             let owner = self.owners.get(node).unwrap_or(AccountId::from([0u8; 32]));
-            &owner == caller || self.operators.get((*node, *caller)).unwrap_or(false)
+            &owner == caller || self.operators.get((owner, *caller)).unwrap_or(false)
         }
 
         #[ink(message)]
@@ -175,19 +174,7 @@ pub mod registry {
             if caller == operator {
                 return;
             }
-            let key = (self.env().caller(), operator);
-            // We store against caller, not a node — all nodes the caller owns
-            // are covered by this approval.
-            // Reuse the zero node slot keyed by (zero_node, operator) is wrong;
-            // instead use a sentinel node = keccak256(caller_bytes).
-            let sentinel = {
-                let mut buf = [0u8; 32];
-                let caller_bytes: &[u8] = caller.as_ref();
-                buf.copy_from_slice(caller_bytes);
-                buf
-            };
-            let _ = sentinel; // used via operators key below
-            self.operators.insert((self.env().caller().into(), operator), &approved);
+            self.operators.insert((caller, operator), &approved);
             self.env().emit_event(ApprovalForAll { owner: caller, operator, approved });
         }
 

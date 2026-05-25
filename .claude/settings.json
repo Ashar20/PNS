@@ -13,10 +13,27 @@
       "Bash(cp /private/tmp/substrate-contracts-node-mac/substrate-contracts-node /usr/local/bin/substrate-contracts-node)",
       "Bash(cp /private/tmp/substrate-contracts-node-mac/substrate-contracts-node ~/substrate-contracts-node)",
       "Bash(chmod +x ~/substrate-contracts-node)",
-      "Bash(~/substrate-contracts-node --version)"
+      "Bash(~/substrate-contracts-node --version)",
+      "Bash(~/substrate-contracts-node --dev --tmp --rpc-port 9944 --rpc-cors all)",
+      "Bash(echo \"PID=$!\")",
+      "Bash(cargo test *)",
+      "Bash(pnpm info *)",
+      "Bash(node -e \"const v=require\\('fs'\\).readFileSync\\('/dev/stdin','utf8'\\); const arr=JSON.parse\\(v\\); console.log\\(arr.filter\\(x=>x.startsWith\\('0.'\\)\\).slice\\(-10\\).join\\('\\\\n'\\)\\)\")",
+      "Bash(rm -rf ~/Library/Caches/Google && echo \"Done\" && df -h / | tail -1)",
+      "Bash(rustup toolchain *)",
+      "Bash(rustup component *)",
+      "Bash(rustup run *)",
+      "Bash(curl -s \"https://raw.githubusercontent.com/paritytech/cargo-contract/v5.0.3/rust-toolchain.toml\")",
+      "Bash(cargo search *)",
+      "Bash(python3 -c ' *)",
+      "Bash(echo \"Node started, PID: $!\")",
+      "Bash(curl -s -X POST -H \"Content-Type: application/json\" --data '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"system_health\",\"params\":[]}' http://127.0.0.1:9944)",
+      "Bash(pnpm chain:verify)",
+      "Bash(pnpm --filter @pns/sdk build)"
     ],
     "additionalDirectories": [
-      "/Users/silas/PNS/apps/web/src/app/claim"
+      "/Users/silas/PNS/apps/web/src/app/claim",
+      "/Users/silas/Library/Caches/Google"
     ]
   }
 }

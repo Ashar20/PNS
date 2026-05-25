@@ -18,16 +18,7 @@ pub mod reverse_registrar {
             node: [u8; 32],
             label_hash: [u8; 32],
             new_owner: AccountId,
-        ) -> Result<[u8; 32], registry_error::Error>;
-    }
-
-    pub mod registry_error {
-        #[derive(scale::Encode, scale::Decode, Debug, PartialEq, Eq)]
-        #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
-        pub enum Error {
-            NotAuthorized,
-            NodeNotFound,
-        }
+        ) -> Option<[u8; 32]>;
     }
 
     #[ink::trait_definition]
@@ -38,15 +29,7 @@ pub mod reverse_registrar {
             node: [u8; 32],
             key: ink::prelude::string::String,
             value: ink::prelude::string::String,
-        ) -> Result<(), resolver_error::Error>;
-    }
-
-    pub mod resolver_error {
-        #[derive(scale::Encode, scale::Decode, Debug, PartialEq, Eq)]
-        #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
-        pub enum Error {
-            NotAuthorized,
-        }
+        );
     }
 
     #[ink(storage)]
@@ -112,13 +95,12 @@ pub mod reverse_registrar {
         }
 
         fn account_to_hex(account: AccountId) -> String {
+            const HEX: &[u8; 16] = b"0123456789abcdef";
             let bytes: &[u8] = account.as_ref();
             let mut s = String::new();
             for b in bytes {
-                let hi = (b >> 4) as u8;
-                let lo = (b & 0x0F) as u8;
-                s.push(char::from(if hi < 10 { b'0' + hi } else { b'a' + hi - 10 }));
-                s.push(char::from(if lo < 10 { b'0' + lo } else { b'a' + lo - 10 }));
+                s.push(char::from(HEX[(b >> 4) as usize]));
+                s.push(char::from(HEX[(b & 0x0F) as usize]));
             }
             s
         }
@@ -163,7 +145,7 @@ pub mod reverse_registrar {
         fn set_name_records_primary() {
             let accounts =
                 ink::env::test::default_accounts::<ink::env::DefaultEnvironment>();
-            let mut r = ReverseRegistrar::new(
+            let r = ReverseRegistrar::new(
                 AccountId::from([0u8; 32]),
                 AccountId::from([0u8; 32]),
             );

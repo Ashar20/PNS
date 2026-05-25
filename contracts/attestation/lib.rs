@@ -12,7 +12,7 @@ pub mod attestation {
     }
 
     #[derive(scale::Encode, scale::Decode, Debug, Clone)]
-    #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+    #[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
     pub struct AttestationRecord {
         pub id: u64,
         pub issuer_node: [u8; 32],
@@ -88,7 +88,7 @@ pub mod attestation {
                 return Err(Error::NotAuthorized);
             }
             let id = self.next_id;
-            self.next_id += 1;
+            self.next_id = self.next_id.saturating_add(1);
             let issued_at = self.env().block_timestamp();
             let record = AttestationRecord {
                 id,

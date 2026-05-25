@@ -1,6 +1,7 @@
 [package]
 name = "attestation"
 version = "0.1.0"
+authors = ["PNS Team"]
 edition = "2021"
 
 [lib]

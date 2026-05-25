@@ -14,17 +14,10 @@ pub mod registrar {
             node: [u8; 32],
             label_hash: [u8; 32],
             new_owner: AccountId,
-        ) -> Result<[u8; 32], RegistryError>;
+        ) -> Option<[u8; 32]>;
 
         #[ink(message)]
         fn owner(&self, node: [u8; 32]) -> AccountId;
-    }
-
-    #[derive(scale::Encode, scale::Decode, Debug, PartialEq, Eq)]
-    #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
-    pub enum RegistryError {
-        NotAuthorized,
-        NodeNotFound,
     }
 
     #[ink(storage)]
@@ -112,11 +105,11 @@ pub mod registrar {
                     return Err(Error::LabelNotAvailable);
                 }
             }
-            let expires = current_block + self.period;
+            let expires = current_block.saturating_add(self.period);
             self.expiries.insert(label_hash, &expires);
 
             // Refund excess
-            let excess = paid - self.price;
+            let excess = paid.saturating_sub(self.price);
             if excess > 0 {
                 self.env()
                     .transfer(self.env().caller(), excess)
@@ -126,7 +119,7 @@ pub mod registrar {
             let mut registry: ink::contract_ref!(IRegistry) = self.registry.into();
             let subnode = registry
                 .set_subnode_owner(self.base_node, label_hash, owner)
-                .map_err(|_| Error::RegistryCallFailed)?;
+                .ok_or(Error::RegistryCallFailed)?;
 
             self.env().emit_event(NameRegistered {
                 label: label.clone(),
@@ -139,17 +132,17 @@ pub mod registrar {
         #[ink(message, payable)]
         pub fn renew(&mut self, label: String, periods: u32) -> Result<()> {
             let paid = self.env().transferred_value();
-            let total_cost = self.price * u128::from(periods);
+            let total_cost = self.price.saturating_mul(u128::from(periods));
             if paid < total_cost {
                 return Err(Error::InsufficientPayment);
             }
             let label_hash = Self::keccak256(label.as_bytes());
             let current_block = self.env().block_number();
             let current_expiry = self.expiries.get(label_hash).unwrap_or(current_block);
-            let new_expiry = current_expiry + self.period * u32::from(periods as u32);
+            let new_expiry = current_expiry.saturating_add(self.period.saturating_mul(periods));
             self.expiries.insert(label_hash, &new_expiry);
 
-            let excess = paid - total_cost;
+            let excess = paid.saturating_sub(total_cost);
             if excess > 0 {
                 self.env()
                     .transfer(self.env().caller(), excess)
@@ -164,7 +157,7 @@ pub mod registrar {
         pub fn available(&self, label: String) -> bool {
             let label_hash = Self::keccak256(label.as_bytes());
             let current_block = self.env().block_number();
-            self.expiries.get(label_hash).map_or(true, |exp| exp < current_block)
+            self.expiries.get(label_hash).is_none_or(|exp| exp < current_block)
         }
 
         #[ink(message)]

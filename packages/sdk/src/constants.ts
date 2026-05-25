@@ -54,3 +54,11 @@ export const MAINNET_ADDRESSES: ContractAddresses = {
 };
 
 export { LOCAL_ADDRESSES } from "./constants/local.js";
+
+// Gas limits for contract calls.
+// QUERY_GAS: read-only calls, no cross-contract hops.
+// TX_GAS: write calls with no nested contract calls.
+// TX_GAS_CROSS: write calls where the contract calls another contract (needs extra proofSize).
+export const QUERY_GAS = { refTime: 10_000_000_000n, proofSize: 131_072n } as const;
+export const TX_GAS   = { refTime: 30_000_000_000n, proofSize: 131_072n } as const;
+export const TX_GAS_CROSS = { refTime: 30_000_000_000n, proofSize: 524_288n } as const;

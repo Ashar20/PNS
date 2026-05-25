@@ -77,7 +77,7 @@ export async function getContractQuery<T>(
 ): Promise<T> {
   const { ContractPromise } = await import("@polkadot/api-contract");
   const contract = new ContractPromise(api, abi as string, contractAddress);
-  const gasLimit = mkWeight(api, 10_000_000_000n, 10_000n);
+  const gasLimit = mkWeight(api, 10_000_000_000n, 131_072n);
   const { result, output } = await contract.query[message](
     caller,
     { gasLimit: gasLimit as unknown as bigint, storageDepositLimit: null },

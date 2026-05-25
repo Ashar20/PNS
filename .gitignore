@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+.next/
+out/
+*.tsbuildinfo
+
+# Rust / ink! contracts
+**/target/
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Deploy script output (addresses vary per network/node)
+packages/sdk/src/constants/local.ts
+packages/sdk/src/constants/mainnet.ts
+
+# Local chain binaries
+substrate-contracts-node
+substrate-contracts-node-*
+
+# Testing
+coverage/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.idea/
+*.swp
+*.swo
+*~

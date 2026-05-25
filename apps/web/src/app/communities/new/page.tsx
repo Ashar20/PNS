@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { usePNSClient } from "../../../hooks/usePNSClient.js";
-import { useWallet } from "../../../hooks/useWallet.js";
+import { usePNSClient } from "../../../hooks/usePNSClient";
+import { useWallet } from "../../../hooks/useWallet";
 import { deriveMultisigAddress } from "@pns/sdk";
 
 export default function NewCommunityPage() {

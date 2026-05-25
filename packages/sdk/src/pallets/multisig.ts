@@ -1,4 +1,5 @@
 import type { ApiPromise } from "@polkadot/api";
+import type { SubmittableExtrinsic } from "@polkadot/api/types";
 import type { KeyringPair } from "@polkadot/keyring/types";
 import { createKeyMulti, encodeAddress } from "@polkadot/util-crypto";
 import { SS58_FORMAT } from "../constants.js";
@@ -16,11 +17,11 @@ export function sortSigners(signers: string[]): string[] {
 /** Wrap a call in multisig.asMulti, signed by the first signer. */
 export function wrapAsMulti(
   api: ApiPromise,
-  call: ReturnType<typeof api.tx.utility.batchAll>,
+  call: SubmittableExtrinsic<"promise">,
   threshold: number,
   otherSignatories: string[],
   maybeTimepoint: null | { height: number; index: number } = null
-) {
+): SubmittableExtrinsic<"promise"> {
   const sorted = sortSigners(otherSignatories);
   return api.tx.multisig.asMulti(
     threshold,
@@ -38,7 +39,7 @@ export function wrapApproveAsMulti(
   threshold: number,
   otherSignatories: string[],
   maybeTimepoint: null | { height: number; index: number } = null
-) {
+): SubmittableExtrinsic<"promise"> {
   return api.tx.multisig.approveAsMulti(
     threshold,
     sortSigners(otherSignatories),

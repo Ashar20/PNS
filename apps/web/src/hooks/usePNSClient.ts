@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { PNSClient } from "@pns/sdk";
-import { getPNSClient } from "../lib/pns.js";
+import { getPNSClient } from "../lib/pns";
 
 export function usePNSClient() {
   const [client, setClient] = useState<PNSClient | null>(null);

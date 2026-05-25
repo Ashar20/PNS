@@ -1,6 +1,6 @@
 "use client";
 
-import { useWallet } from "../hooks/useWallet.js";
+import { useWallet } from "../hooks/useWallet";
 
 export function WalletConnect() {
   const { accounts, selected, isConnecting, error, connect, selectAccount } = useWallet();

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Providers } from "./providers.jsx";
-import { WalletConnect } from "../components/WalletConnect.jsx";
+import { Providers } from "./providers";
+import { WalletConnect } from "../components/WalletConnect";
 import Link from "next/link";
 
 export const metadata: Metadata = {

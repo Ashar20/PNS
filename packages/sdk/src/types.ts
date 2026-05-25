@@ -1,6 +1,5 @@
 import type { ApiPromise } from "@polkadot/api";
 import type { KeyringPair } from "@polkadot/keyring/types";
-import type { ISubmittableResult } from "@polkadot/types/types";
 
 export type AccountId = string; // SS58 encoded
 
@@ -110,5 +109,5 @@ export interface ClaimBountyOpts {
 export interface TxResult {
   blockHash: string;
   txHash: string;
-  events: ISubmittableResult["events"];
+  events: unknown[];
 }

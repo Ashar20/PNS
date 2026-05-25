@@ -28,8 +28,8 @@ export function normaliseName(name: string): string {
     .join(".");
 }
 
-export function keccak256(input: Uint8Array): Uint8Array {
-  return keccakAsU8a(input);
+export function keccak256(input: Uint8Array): Uint8Array<ArrayBuffer> {
+  return keccakAsU8a(input) as Uint8Array<ArrayBuffer>;
 }
 
 /**

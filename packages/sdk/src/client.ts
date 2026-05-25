@@ -30,7 +30,7 @@ import { ContractPromise } from "@polkadot/api-contract";
 
 export class PNSClient {
   public api!: ApiPromise;
-  private addresses: ContractAddresses;
+  public readonly addresses: ContractAddresses;
   private wsEndpoint: string;
 
   // ABIs loaded lazily via setAbis()
@@ -102,7 +102,7 @@ export class PNSClient {
     );
     const { output } = await contract.query.resolver(
       caller,
-      { gasLimit: this.api.registry.createType("WeightV2", { refTime: 5_000_000_000n, proofSize: 5_000n }) },
+      { gasLimit: (this.api.registry.createType("WeightV2", { refTime: 5_000_000_000n, proofSize: 5_000n })) as unknown as bigint },
       Array.from(node)
     );
     const addr = output?.toJSON() as string | null;
@@ -122,7 +122,7 @@ export class PNSClient {
     const caller = addr;
     const { output } = await contract.query.nameOf(
       caller,
-      { gasLimit: this.api.registry.createType("WeightV2", { refTime: 5_000_000_000n, proofSize: 5_000n }) },
+      { gasLimit: (this.api.registry.createType("WeightV2", { refTime: 5_000_000_000n, proofSize: 5_000n })) as unknown as bigint },
       addr
     );
     return output?.toJSON() as string | null;
@@ -250,7 +250,7 @@ export class PNSClient {
       this.abis.resolver as string,
       this.addresses.resolver
     ).tx.setText(
-      { gasLimit: this.api.registry.createType("WeightV2", { refTime: 10_000_000_000n, proofSize: 10_000n }) },
+      { gasLimit: (this.api.registry.createType("WeightV2", { refTime: 10_000_000_000n, proofSize: 10_000n })) as unknown as bigint },
       Array.from(node),
       `contribution.${opts.bountyId}`,
       opts.description

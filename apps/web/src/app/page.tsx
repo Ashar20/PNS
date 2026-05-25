@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { NameInput } from "../components/NameInput.jsx";
+import { NameInput } from "../components/NameInput";
 
 export default function LandingPage() {
   const router = useRouter();

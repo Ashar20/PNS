@@ -1,15 +1,20 @@
 import type { ApiPromise } from "@polkadot/api";
 import type { SubmittableExtrinsic } from "@polkadot/api/types";
 import type { KeyringPair } from "@polkadot/keyring/types";
-import type { ISubmittableResult } from "@polkadot/types/types";
 import type { TxResult } from "./types.js";
+
+interface SubmittableResult {
+  isError: boolean;
+  status: { isFinalized: boolean; asFinalized: { toHex(): string } };
+  events: Array<{ event: { section: string; method: string; data: unknown[] } }>;
+}
 
 export function signAndSend(
   tx: SubmittableExtrinsic<"promise">,
   signer: KeyringPair
 ): Promise<TxResult> {
   return new Promise((resolve, reject) => {
-    tx.signAndSend(signer, (result: ISubmittableResult) => {
+    tx.signAndSend(signer, (result: SubmittableResult) => {
       if (result.isError) {
         reject(new Error("Transaction failed"));
         return;
@@ -34,18 +39,23 @@ export function signAndSend(
 }
 
 export function extractBatchError(
-  events: ISubmittableResult["events"]
+  events: Array<{ event: { section: string; method: string; data: unknown[] } }>
 ): { index: number; error: string } | null {
   for (const { event } of events) {
     if (event.section === "utility" && event.method === "BatchInterrupted") {
       const [index, error] = event.data;
       return {
-        index: (index as unknown as { toNumber(): number }).toNumber(),
-        error: error.toString(),
+        index: (index as { toNumber(): number }).toNumber(),
+        error: String(error),
       };
     }
   }
   return null;
+}
+
+/** Cast a WeightV2 registry type to the shape api-contract expects. */
+export function mkWeight(api: ApiPromise, refTime: bigint, proofSize: bigint): unknown {
+  return api.registry.createType("WeightV2", { refTime, proofSize });
 }
 
 export async function getContractQuery<T>(
@@ -58,9 +68,10 @@ export async function getContractQuery<T>(
 ): Promise<T> {
   const { ContractPromise } = await import("@polkadot/api-contract");
   const contract = new ContractPromise(api, abi as string, contractAddress);
+  const gasLimit = mkWeight(api, 10_000_000_000n, 10_000n);
   const { result, output } = await contract.query[message](
     caller,
-    { gasLimit: api.registry.createType("WeightV2", { refTime: 10_000_000_000n, proofSize: 10_000n }) },
+    { gasLimit: gasLimit as unknown as bigint },
     ...args
   );
   if (result.isErr) {

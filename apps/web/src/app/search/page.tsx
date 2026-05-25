@@ -2,14 +2,14 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { NameInput } from "../../components/NameInput.jsx";
-import { usePNSClient } from "../../hooks/usePNSClient.js";
+import { NameInput } from "../../components/NameInput";
+import { usePNSClient } from "../../hooks/usePNSClient";
 import { useState, Suspense } from "react";
 import Link from "next/link";
 
 function SearchResults({ query }: { query: string }) {
   const { client } = usePNSClient();
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["availability", query],
     queryFn: async () => {
       if (!client || !query) return null;
@@ -54,26 +54,32 @@ function SearchResults({ query }: { query: string }) {
   );
 }
 
-export default function SearchPage() {
+function SearchInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const initialQ = searchParams.get("q") ?? "";
   const [query, setQuery] = useState(initialQ);
 
   return (
-    <Suspense>
-      <div className="max-w-xl mx-auto space-y-6">
-        <h2 className="text-2xl font-bold text-neutral-100">Search a name</h2>
-        <NameInput
-          value={initialQ}
-          onChange={(n) => {
-            setQuery(n);
-            if (n) router.replace(`/search?q=${encodeURIComponent(n)}`, { scroll: false });
-          }}
-          placeholder="alice"
-        />
-        <SearchResults query={query} />
-      </div>
+    <div className="max-w-xl mx-auto space-y-6">
+      <h2 className="text-2xl font-bold text-neutral-100">Search a name</h2>
+      <NameInput
+        value={initialQ}
+        onChange={(n) => {
+          setQuery(n);
+          if (n) router.replace(`/search?q=${encodeURIComponent(n)}`, { scroll: false });
+        }}
+        placeholder="alice"
+      />
+      <SearchResults query={query} />
+    </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="text-neutral-500 text-sm">Loading…</div>}>
+      <SearchInner />
     </Suspense>
   );
 }

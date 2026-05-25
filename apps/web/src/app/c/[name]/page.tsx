@@ -2,9 +2,9 @@
 
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { usePNSClient } from "../../../hooks/usePNSClient.js";
-import { RoleBadge } from "../../../components/RoleBadge.jsx";
-import { BountyCard } from "../../../components/BountyCard.jsx";
+import { usePNSClient } from "../../../hooks/usePNSClient";
+import { RoleBadge } from "../../../components/RoleBadge";
+import { BountyCard } from "../../../components/BountyCard";
 import Link from "next/link";
 
 export default function CommunityPage() {

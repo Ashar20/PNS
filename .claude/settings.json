@@ -29,11 +29,27 @@
       "Bash(echo \"Node started, PID: $!\")",
       "Bash(curl -s -X POST -H \"Content-Type: application/json\" --data '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"system_health\",\"params\":[]}' http://127.0.0.1:9944)",
       "Bash(pnpm chain:verify)",
-      "Bash(pnpm --filter @pns/sdk build)"
+      "Bash(pnpm --filter @pns/sdk build)",
+      "Bash(node -e \"const t = require\\('@polkadot/types'\\); console.log\\(Object.keys\\(t\\).filter\\(k=>k.includes\\('Submit'\\)\\).join\\('\\\\n'\\)\\)\")",
+      "Bash(node --input-type=module)",
+      "Bash(sed -i '' 's/this\\\\.\\(api\\\\.registry\\\\.createType\\(\"WeightV2\", { refTime: 5_000_000_000n, proofSize: 5_000n }\\)\\) as unknown as bigint/\\(this.api.registry.createType\\(\"WeightV2\", { refTime: 5_000_000_000n, proofSize: 5_000n }\\)\\) as unknown as bigint/g' /Users/silas/PNS/packages/sdk/src/client.ts)",
+      "Bash(sed -i '' 's/this\\\\.\\(api\\\\.registry\\\\.createType\\(\"WeightV2\", { refTime: 10_000_000_000n, proofSize: 10_000n }\\)\\) as unknown as bigint/\\(this.api.registry.createType\\(\"WeightV2\", { refTime: 10_000_000_000n, proofSize: 10_000n }\\)\\) as unknown as bigint/g' /Users/silas/PNS/packages/sdk/src/client.ts)",
+      "Bash(pnpm --filter @pns/sdk test)",
+      "Bash(pnpm --filter @pns/web build)",
+      "Bash(grep -v \"^--$\")",
+      "Bash(grep -v \"^\\\\s*$\\\\|^>\\\\|^\\\\s*[0-9]\\\\|Compiled\\\\|Creating\\\\|Generating\\\\|Collecting\\\\|warn\\\\|info\\\\|  [│└┌]\")",
+      "Bash(git checkout *)",
+      "Bash(sed -i '' 's/const \\\\[schema, setSchema\\\\] = useState\\(SCHEMAS\\\\.ENDORSEMENT_SKILL\\)/const [schema, setSchema] = useState<string>\\(SCHEMAS.ENDORSEMENT_SKILL\\)/' \"/Users/silas/PNS/apps/web/src/app/[name]/attest/page.tsx\")",
+      "Bash(timeout 10 node -e ' *)",
+      "Bash(timeout 12 npx tsx -e ' *)",
+      "Bash(npx tsx -e ' *)",
+      "Bash(pnpm --filter @pns/web dev)",
+      "Bash(curl -s http://localhost:3000)"
     ],
     "additionalDirectories": [
       "/Users/silas/PNS/apps/web/src/app/claim",
-      "/Users/silas/Library/Caches/Google"
+      "/Users/silas/Library/Caches/Google",
+      "/Users/silas/PNS/apps/web/src/app/[name]/attest"
     ]
   }
 }

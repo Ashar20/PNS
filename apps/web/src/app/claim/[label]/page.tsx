@@ -2,9 +2,9 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { usePNSClient } from "../../../hooks/usePNSClient.js";
-import { useWallet } from "../../../hooks/useWallet.js";
-import { WalletConnect } from "../../../components/WalletConnect.jsx";
+import { usePNSClient } from "../../../hooks/usePNSClient";
+import { useWallet } from "../../../hooks/useWallet";
+import { WalletConnect } from "../../../components/WalletConnect";
 
 export default function ClaimPage() {
   const { label } = useParams<{ label: string }>();

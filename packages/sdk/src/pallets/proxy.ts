@@ -1,4 +1,5 @@
 import type { ApiPromise } from "@polkadot/api";
+import type { SubmittableExtrinsic } from "@polkadot/api/types";
 import { ROLE_TO_PROXY_TYPE } from "../constants.js";
 
 export function roleToProxyType(role: string): string {
@@ -14,7 +15,7 @@ export function buildAddProxy(
   delegate: string,
   role: string,
   delay = 0
-) {
+): SubmittableExtrinsic<"promise"> {
   const proxyType = roleToProxyType(role);
   return api.tx.proxy.addProxy(delegate, proxyType, delay);
 }
@@ -24,7 +25,7 @@ export function buildRemoveProxy(
   delegate: string,
   role: string,
   delay = 0
-) {
+): SubmittableExtrinsic<"promise"> {
   const proxyType = roleToProxyType(role);
   return api.tx.proxy.removeProxy(delegate, proxyType, delay);
 }

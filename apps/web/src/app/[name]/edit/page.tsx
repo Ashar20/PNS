@@ -3,9 +3,9 @@
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { usePNSClient } from "../../../hooks/usePNSClient.js";
-import { useWallet } from "../../../hooks/useWallet.js";
-import { RecordEditor } from "../../../components/RecordEditor.jsx";
+import { usePNSClient } from "../../../hooks/usePNSClient";
+import { useWallet } from "../../../hooks/useWallet";
+import { RecordEditor } from "../../../components/RecordEditor";
 import { namehash, normaliseName } from "@pns/sdk";
 import { setAddr, setText } from "@pns/sdk";
 

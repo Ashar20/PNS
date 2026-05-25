@@ -2,8 +2,8 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { usePNSClient } from "../../../../hooks/usePNSClient.js";
-import { useWallet } from "../../../../hooks/useWallet.js";
+import { usePNSClient } from "../../../../hooks/usePNSClient";
+import { useWallet } from "../../../../hooks/useWallet";
 import { ROLE_TO_PROXY_TYPE } from "@pns/sdk";
 
 const ROLES = Object.keys(ROLE_TO_PROXY_TYPE);

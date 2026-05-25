@@ -2,11 +2,11 @@
 
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { usePNSClient } from "../../hooks/usePNSClient.js";
-import { useWallet } from "../../hooks/useWallet.js";
-import { RoleBadge } from "../../components/RoleBadge.jsx";
-import { JudgementBadge } from "../../components/JudgementBadge.jsx";
-import { AttestationFeed } from "../../components/AttestationFeed.jsx";
+import { usePNSClient } from "../../hooks/usePNSClient";
+import { useWallet } from "../../hooks/useWallet";
+import { RoleBadge } from "../../components/RoleBadge";
+import { JudgementBadge } from "../../components/JudgementBadge";
+import { AttestationFeed } from "../../components/AttestationFeed";
 import Link from "next/link";
 
 export default function ProfilePage() {

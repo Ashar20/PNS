@@ -4,6 +4,10 @@ import type { TxResult } from "../types.js";
 import { signAndSend } from "../utils.js";
 import { ContractPromise } from "@polkadot/api-contract";
 
+function weight(api: ApiPromise, refTime: bigint, proofSize: bigint): unknown {
+  return api.registry.createType("WeightV2", { refTime, proofSize });
+}
+
 export function getResolverContract(api: ApiPromise, address: string, abi: unknown) {
   return new ContractPromise(api, abi as string, address);
 }
@@ -18,7 +22,7 @@ export async function getAddr(
   const contract = getResolverContract(api, address, abi);
   const { output } = await contract.query.addr(
     caller,
-    { gasLimit: api.registry.createType("WeightV2", { refTime: 5_000_000_000n, proofSize: 5_000n }) },
+    { gasLimit: weight(api, 5_000_000_000n, 5_000n) as unknown as bigint },
     Array.from(node)
   );
   return output?.toJSON() as string | null;
@@ -35,7 +39,7 @@ export async function getText(
   const contract = getResolverContract(api, address, abi);
   const { output } = await contract.query.text(
     caller,
-    { gasLimit: api.registry.createType("WeightV2", { refTime: 5_000_000_000n, proofSize: 5_000n }) },
+    { gasLimit: weight(api, 5_000_000_000n, 5_000n) as unknown as bigint },
     Array.from(node),
     key
   );
@@ -53,7 +57,7 @@ export async function setText(
 ): Promise<TxResult> {
   const contract = getResolverContract(api, address, abi);
   const tx = contract.tx.setText(
-    { gasLimit: api.registry.createType("WeightV2", { refTime: 10_000_000_000n, proofSize: 10_000n }) },
+    { gasLimit: weight(api, 10_000_000_000n, 10_000n) as unknown as bigint },
     Array.from(node),
     key,
     value
@@ -71,7 +75,7 @@ export async function setAddr(
 ): Promise<TxResult> {
   const contract = getResolverContract(api, address, abi);
   const tx = contract.tx.setAddr(
-    { gasLimit: api.registry.createType("WeightV2", { refTime: 10_000_000_000n, proofSize: 10_000n }) },
+    { gasLimit: weight(api, 10_000_000_000n, 10_000n) as unknown as bigint },
     Array.from(node),
     addr
   );

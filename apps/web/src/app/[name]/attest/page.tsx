@@ -2,8 +2,8 @@
 
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import { usePNSClient } from "../../../hooks/usePNSClient.js";
-import { useWallet } from "../../../hooks/useWallet.js";
+import { usePNSClient } from "../../../hooks/usePNSClient";
+import { useWallet } from "../../../hooks/useWallet";
 import { SCHEMAS } from "@pns/sdk";
 
 const SCHEMA_LIST = Object.values(SCHEMAS);
@@ -13,7 +13,7 @@ export default function AttestPage() {
   const { client } = usePNSClient();
   const { selected } = useWallet();
   const [issuerName, setIssuerName] = useState("");
-  const [schema, setSchema] = useState(SCHEMAS.ENDORSEMENT_SKILL);
+  const [schema, setSchema] = useState<string>(SCHEMAS.ENDORSEMENT_SKILL);
   const [payload, setPayload] = useState("");
   const [status, setStatus] = useState<"idle" | "attesting" | "done" | "error">("idle");
   const [errMsg, setErrMsg] = useState("");

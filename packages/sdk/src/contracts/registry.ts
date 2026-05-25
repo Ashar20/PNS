@@ -18,7 +18,7 @@ export async function getOwner(
   const contract = getRegistryContract(api, address, abi);
   const { output } = await contract.query.owner(
     caller,
-    { gasLimit: api.registry.createType("WeightV2", { refTime: 5_000_000_000n, proofSize: 5_000n }) },
+    { gasLimit: (api.registry.createType("WeightV2", { refTime: 5_000_000_000n, proofSize: 5_000n })) as unknown as bigint },
     Array.from(node)
   );
   const result = output?.toJSON() as string | null;
@@ -36,7 +36,7 @@ export async function setSubnodeOwner(
 ): Promise<TxResult> {
   const contract = getRegistryContract(api, address, abi);
   const tx = contract.tx.setSubnodeOwner(
-    { gasLimit: api.registry.createType("WeightV2", { refTime: 10_000_000_000n, proofSize: 10_000n }) },
+    { gasLimit: (api.registry.createType("WeightV2", { refTime: 10_000_000_000n, proofSize: 10_000n })) as unknown as bigint },
     Array.from(node),
     Array.from(labelHash),
     newOwner
@@ -54,7 +54,7 @@ export async function setResolver(
 ): Promise<TxResult> {
   const contract = getRegistryContract(api, address, abi);
   const tx = contract.tx.setResolver(
-    { gasLimit: api.registry.createType("WeightV2", { refTime: 10_000_000_000n, proofSize: 10_000n }) },
+    { gasLimit: (api.registry.createType("WeightV2", { refTime: 10_000_000_000n, proofSize: 10_000n })) as unknown as bigint },
     Array.from(node),
     resolver
   );
@@ -71,7 +71,7 @@ export async function recordExists(
   const contract = getRegistryContract(api, address, abi);
   const { output } = await contract.query.recordExists(
     caller,
-    { gasLimit: api.registry.createType("WeightV2", { refTime: 5_000_000_000n, proofSize: 5_000n }) },
+    { gasLimit: (api.registry.createType("WeightV2", { refTime: 5_000_000_000n, proofSize: 5_000n })) as unknown as bigint },
     Array.from(node)
   );
   return output?.toJSON() as boolean;

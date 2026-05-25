@@ -1,4 +1,5 @@
 import type { ApiPromise } from "@polkadot/api";
+import type { SubmittableExtrinsic } from "@polkadot/api/types";
 import type { KeyringPair } from "@polkadot/keyring/types";
 import type { Member, TxResult } from "../types.js";
 import { signAndSend } from "../utils.js";
@@ -19,7 +20,7 @@ export async function isMember(
   const contract = getCommunityContract(api, address, abi);
   const { output } = await contract.query.isMember(
     caller,
-    { gasLimit: api.registry.createType("WeightV2", { refTime: 5_000_000_000n, proofSize: 5_000n }) },
+    { gasLimit: (api.registry.createType("WeightV2", { refTime: 5_000_000_000n, proofSize: 5_000n })) as unknown as bigint },
     account
   );
   return output?.toJSON() as boolean;
@@ -35,7 +36,7 @@ export async function roleOf(
   const contract = getCommunityContract(api, address, abi);
   const { output } = await contract.query.roleOf(
     caller,
-    { gasLimit: api.registry.createType("WeightV2", { refTime: 5_000_000_000n, proofSize: 5_000n }) },
+    { gasLimit: (api.registry.createType("WeightV2", { refTime: 5_000_000_000n, proofSize: 5_000n })) as unknown as bigint },
     label
   );
   return output?.toJSON() as string | null;
@@ -50,7 +51,7 @@ export async function membersCount(
   const contract = getCommunityContract(api, address, abi);
   const { output } = await contract.query.membersCount(
     caller,
-    { gasLimit: api.registry.createType("WeightV2", { refTime: 5_000_000_000n, proofSize: 5_000n }) }
+    { gasLimit: (api.registry.createType("WeightV2", { refTime: 5_000_000_000n, proofSize: 5_000n })) as unknown as bigint }
   );
   return output?.toJSON() as number;
 }
@@ -62,10 +63,10 @@ export function buildIssueSubnameTx(
   label: string,
   member: string,
   role: string
-) {
+): SubmittableExtrinsic<"promise"> {
   const contract = getCommunityContract(api, address, abi);
   return contract.tx.issueSubname(
-    { gasLimit: api.registry.createType("WeightV2", { refTime: 10_000_000_000n, proofSize: 10_000n }) },
+    { gasLimit: (api.registry.createType("WeightV2", { refTime: 10_000_000_000n, proofSize: 10_000n })) as unknown as bigint },
     label,
     member,
     role
@@ -77,10 +78,10 @@ export function buildRevokeSubnameTx(
   address: string,
   abi: unknown,
   label: string
-) {
+): SubmittableExtrinsic<"promise"> {
   const contract = getCommunityContract(api, address, abi);
   return contract.tx.revokeSubname(
-    { gasLimit: api.registry.createType("WeightV2", { refTime: 10_000_000_000n, proofSize: 10_000n }) },
+    { gasLimit: (api.registry.createType("WeightV2", { refTime: 10_000_000_000n, proofSize: 10_000n })) as unknown as bigint },
     label
   );
 }

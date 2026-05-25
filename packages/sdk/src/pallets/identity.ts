@@ -3,7 +3,7 @@ import type { KeyringPair } from "@polkadot/keyring/types";
 import type { ProfileFields, TxResult } from "../types.js";
 import { signAndSend } from "../utils.js";
 
-export function buildIdentityInfo(api: ApiPromise, fields: ProfileFields) {
+export function buildIdentityInfo(api: ApiPromise, fields: ProfileFields): unknown {
   const data = (v: string | undefined) =>
     v ? { Raw: v } : { None: null };
 

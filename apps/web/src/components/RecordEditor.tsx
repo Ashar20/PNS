@@ -59,7 +59,7 @@ export function RecordEditor({ initial = {}, onSave, isSaving }: RecordEditorPro
       ))}
 
       {Object.keys(records)
-        .filter((k) => !WELL_KNOWN_KEYS.includes(k))
+        .filter((k) => !(WELL_KNOWN_KEYS as string[]).includes(k))
         .map((key) => (
           <div key={key} className="flex gap-3 items-center">
             <label className="w-36 text-sm text-violet-400 font-mono shrink-0 truncate">{key}</label>

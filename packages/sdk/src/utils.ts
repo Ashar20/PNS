@@ -3,6 +3,15 @@ import type { SubmittableExtrinsic } from "@polkadot/api/types";
 import type { KeyringPair } from "@polkadot/keyring/types";
 import type { TxResult } from "./types.js";
 
+/** Unwrap ink! 5 MessageResult<T> from output.toJSON() which returns { ok: T } | { err: ... } */
+export function unwrapOk<T>(json: unknown): T | null {
+  if (json === null || json === undefined) return null;
+  if (typeof json === "object" && json !== null && "ok" in json) {
+    return (json as { ok: T }).ok;
+  }
+  return json as T;
+}
+
 interface SubmittableResult {
   isError: boolean;
   status: { isFinalized: boolean; asFinalized: { toHex(): string } };
@@ -71,7 +80,7 @@ export async function getContractQuery<T>(
   const gasLimit = mkWeight(api, 10_000_000_000n, 10_000n);
   const { result, output } = await contract.query[message](
     caller,
-    { gasLimit: gasLimit as unknown as bigint },
+    { gasLimit: gasLimit as unknown as bigint, storageDepositLimit: null },
     ...args
   );
   if (result.isErr) {

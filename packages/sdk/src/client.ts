@@ -24,7 +24,7 @@ import { claimSubname, revokeSubname } from "./flows/claim-subname.js";
 import { setIdentity, provideJudgement } from "./pallets/identity.js";
 import { deriveMultisigAddress } from "./pallets/multisig.js";
 import { proposeBounty, claimBounty as palletClaimBounty, getNextBountyId } from "./pallets/bounties.js";
-import { signAndSend } from "./utils.js";
+import { signAndSend, unwrapOk } from "./utils.js";
 import { TEXT_KEYS, REGISTRATION_PRICE, LOCAL_WS } from "./constants.js";
 import { ContractPromise } from "@polkadot/api-contract";
 
@@ -102,10 +102,10 @@ export class PNSClient {
     );
     const { output } = await contract.query.resolver(
       caller,
-      { gasLimit: (this.api.registry.createType("WeightV2", { refTime: 5_000_000_000n, proofSize: 5_000n })) as unknown as bigint },
+      { gasLimit: (this.api.registry.createType("WeightV2", { refTime: 30_000_000_000n, proofSize: 131_072n })) as unknown as bigint, storageDepositLimit: null },
       Array.from(node)
     );
-    const addr = output?.toJSON() as string | null;
+    const addr = unwrapOk<string>(output?.toJSON());
     // Zero address means no resolver set
     if (!addr || addr === "0x0000000000000000000000000000000000000000000000000000000000000000") {
       return null;
@@ -122,10 +122,10 @@ export class PNSClient {
     const caller = addr;
     const { output } = await contract.query.nameOf(
       caller,
-      { gasLimit: (this.api.registry.createType("WeightV2", { refTime: 5_000_000_000n, proofSize: 5_000n })) as unknown as bigint },
+      { gasLimit: (this.api.registry.createType("WeightV2", { refTime: 30_000_000_000n, proofSize: 131_072n })) as unknown as bigint, storageDepositLimit: null },
       addr
     );
-    return output?.toJSON() as string | null;
+    return unwrapOk<string>(output?.toJSON()) ?? null;
   }
 
   async getTextRecords(name: string): Promise<Record<string, string>> {
@@ -250,7 +250,7 @@ export class PNSClient {
       this.abis.resolver as string,
       this.addresses.resolver
     ).tx.setText(
-      { gasLimit: (this.api.registry.createType("WeightV2", { refTime: 10_000_000_000n, proofSize: 10_000n })) as unknown as bigint },
+      { gasLimit: (this.api.registry.createType("WeightV2", { refTime: 30_000_000_000n, proofSize: 131_072n })) as unknown as bigint, storageDepositLimit: null },
       Array.from(node),
       `contribution.${opts.bountyId}`,
       opts.description

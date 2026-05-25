@@ -1,18 +1,6 @@
-"use client";
-
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { NameInput } from "../components/NameInput";
+import { HomeSearch } from "../components/HomeSearch";
 
 export default function LandingPage() {
-  const router = useRouter();
-  const [normalised, setNormalised] = useState("");
-
-  const handleSearch = () => {
-    if (!normalised) return;
-    router.push(`/search?q=${encodeURIComponent(normalised)}`);
-  };
-
   return (
     <div className="flex flex-col items-center gap-16 pt-16">
       {/* Hero */}
@@ -27,22 +15,7 @@ export default function LandingPage() {
       </div>
 
       {/* Search */}
-      <div className="w-full max-w-xl">
-        <NameInput
-          value=""
-          onChange={(n) => setNormalised(n)}
-          placeholder="find your name"
-          suffix=".pot"
-          className="text-xl"
-        />
-        <button
-          onClick={handleSearch}
-          disabled={!normalised}
-          className="w-full mt-4 py-3 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 text-white font-semibold rounded-xl transition-colors"
-        >
-          Search
-        </button>
-      </div>
+      <HomeSearch />
 
       {/* Pitch grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-3xl">

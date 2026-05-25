@@ -1,13 +1,14 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { usePNSClient } from "../../../hooks/usePNSClient";
 import { useWallet } from "../../../hooks/useWallet";
 import { RecordEditor } from "../../../components/RecordEditor";
-import { namehash, normaliseName } from "@pns/sdk";
-import { setAddr, setText } from "@pns/sdk";
+import { namehash, normaliseName, setText, setAddr } from "@pns/sdk";
 
 export default function EditProfilePage() {
   const { name } = useParams<{ name: string }>();
@@ -15,39 +16,33 @@ export default function EditProfilePage() {
   const { selected } = useWallet();
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [errMsg, setErrMsg] = useState<string | null>(null);
 
   const { data: resolved } = useQuery({
     queryKey: ["profile", name],
-    queryFn: () => client!.resolveName(name),
+    queryFn: () => client!.resolveName(name as string),
     enabled: !!client,
   });
 
   const handleSave = async (records: Record<string, string>) => {
     if (!client || !selected) return;
+    if (selected.source !== "dev" || !selected.signer) {
+      setErrMsg("Extension wallet signing not yet wired up. Use a dev account.");
+      return;
+    }
     setIsSaving(true);
     setSaved(false);
+    setErrMsg(null);
     try {
-      const { web3FromAddress } = await import("@polkadot/extension-dapp");
-      const injector = await web3FromAddress(selected.address);
-      const node = namehash(normaliseName(name));
-      const calls = Object.entries(records).map(([key, value]) =>
-        client.api.tx.contracts.call(
-          client.addresses.resolver,
-          0,
-          { refTime: 10_000_000_000n, proofSize: 10_000n },
-          null,
-          []
-        )
-      );
-      // In a full implementation, each record is set via resolver.setText
-      // batched through utility.batchAll
-      // This is wired up via the PNSClient.setProfile flow
-      await client.api.tx.utility
-        .batchAll(calls)
-        .signAndSend(selected.address, { signer: injector.signer });
+      const node = namehash(normaliseName(name as string));
+      const abis = (client as unknown as { abis: Record<string, unknown> }).abis;
+      for (const [key, value] of Object.entries(records)) {
+        if (!value) continue;
+        await setText(client.api, client.addresses.resolver, abis.resolver, node, key, value, selected.signer);
+      }
       setSaved(true);
     } catch (e) {
-      console.error(e);
+      setErrMsg(String(e));
     } finally {
       setIsSaving(false);
     }
@@ -63,6 +58,11 @@ export default function EditProfilePage() {
       {saved && (
         <div className="bg-green-900/20 border border-green-800 rounded-xl px-4 py-3 text-sm text-green-300">
           Records saved successfully.
+        </div>
+      )}
+      {errMsg && (
+        <div className="bg-red-900/20 border border-red-800 rounded-xl px-4 py-3 text-sm text-red-300">
+          {errMsg}
         </div>
       )}
       <RecordEditor

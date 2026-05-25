@@ -115,14 +115,13 @@ pub mod registry {
         }
 
         #[ink(message)]
-        pub fn set_owner(&mut self, node: [u8; 32], new_owner: AccountId) -> Result<()> {
+        pub fn set_owner(&mut self, node: [u8; 32], new_owner: AccountId) {
             let caller = self.env().caller();
             if !self.is_authorized(&node, &caller) {
-                return Err(Error::NotAuthorized);
+                return;
             }
             self.owners.insert(node, &new_owner);
             self.env().emit_event(Transfer { node, owner: new_owner });
-            Ok(())
         }
 
         #[ink(message)]
@@ -131,10 +130,10 @@ pub mod registry {
             node: [u8; 32],
             label_hash: [u8; 32],
             new_owner: AccountId,
-        ) -> Result<[u8; 32]> {
+        ) -> Option<[u8; 32]> {
             let caller = self.env().caller();
             if !self.is_authorized(&node, &caller) {
-                return Err(Error::NotAuthorized);
+                return None;
             }
             let mut combined = [0u8; 64];
             combined[..32].copy_from_slice(&node);
@@ -142,7 +141,7 @@ pub mod registry {
             let subnode = keccak256(&combined);
             self.owners.insert(subnode, &new_owner);
             self.env().emit_event(NewOwner { node, label: label_hash, owner: new_owner });
-            Ok(subnode)
+            Some(subnode)
         }
 
         #[ink(message)]

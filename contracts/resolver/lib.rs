@@ -6,14 +6,11 @@ pub mod resolver {
     use ink::prelude::{string::String, vec::Vec};
     use ink::storage::Mapping;
 
-    // Cross-contract call trait for Registry
-    #[ink::trait_definition]
-    pub trait IRegistry {
-        #[ink(message)]
-        fn owner(&self, node: [u8; 32]) -> AccountId;
-        #[ink(message)]
-        fn is_approved_for_all(&self, owner: AccountId, operator: AccountId) -> bool;
-    }
+    // Registry selectors (blake2b of message name, first 4 bytes big-endian):
+    // owner            = 0xfeaea4fa
+    // is_approved_for_all = 0x0f5922e9
+    const SEL_OWNER: [u8; 4] = [0xfe, 0xae, 0xa4, 0xfa];
+    const SEL_IS_APPROVED_FOR_ALL: [u8; 4] = [0x0f, 0x59, 0x22, 0xe9];
 
     #[ink(storage)]
     pub struct PublicResolver {
@@ -72,12 +69,29 @@ pub mod resolver {
         }
 
         fn is_authorized(&self, node: [u8; 32], caller: AccountId) -> bool {
-            let registry: ink::contract_ref!(IRegistry) = self.registry.into();
-            let owner = registry.owner(node);
+            use ink::env::call::{build_call, ExecutionInput, Selector};
+            let owner: AccountId = build_call::<ink::env::DefaultEnvironment>()
+                .call(self.registry)
+                .ref_time_limit(5_000_000_000)
+                .proof_size_limit(11_990_383_647_911_208_550)
+                .exec_input(ExecutionInput::new(Selector::new(SEL_OWNER)).push_arg(node))
+                .returns::<AccountId>()
+                .invoke();
             if owner == caller {
                 return true;
             }
-            registry.is_approved_for_all(owner, caller)
+            let approved: bool = build_call::<ink::env::DefaultEnvironment>()
+                .call(self.registry)
+                .ref_time_limit(5_000_000_000)
+                .proof_size_limit(11_990_383_647_911_208_550)
+                .exec_input(
+                    ExecutionInput::new(Selector::new(SEL_IS_APPROVED_FOR_ALL))
+                        .push_arg(owner)
+                        .push_arg(caller),
+                )
+                .returns::<bool>()
+                .invoke();
+            approved
         }
 
         #[ink(message)]

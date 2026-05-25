@@ -1,7 +1,7 @@
 import type { ApiPromise } from "@polkadot/api";
 import type { KeyringPair } from "@polkadot/keyring/types";
 import type { TxResult } from "../types.js";
-import { signAndSend } from "../utils.js";
+import { signAndSend, unwrapOk } from "../utils.js";
 import { ContractPromise } from "@polkadot/api-contract";
 
 function weight(api: ApiPromise, refTime: bigint, proofSize: bigint): unknown {
@@ -22,10 +22,13 @@ export async function getAddr(
   const contract = getResolverContract(api, address, abi);
   const { output } = await contract.query.addr(
     caller,
-    { gasLimit: weight(api, 5_000_000_000n, 5_000n) as unknown as bigint },
+    { gasLimit: weight(api, 30_000_000_000n, 524_288n) as unknown as bigint, storageDepositLimit: null },
     Array.from(node)
   );
-  return output?.toJSON() as string | null;
+  const raw = unwrapOk<{ ok?: string } | string>(output?.toJSON());
+  if (!raw) return null;
+  if (typeof raw === "object" && "ok" in raw) return raw.ok ?? null;
+  return raw as string;
 }
 
 export async function getText(
@@ -39,11 +42,14 @@ export async function getText(
   const contract = getResolverContract(api, address, abi);
   const { output } = await contract.query.text(
     caller,
-    { gasLimit: weight(api, 5_000_000_000n, 5_000n) as unknown as bigint },
+    { gasLimit: weight(api, 30_000_000_000n, 524_288n) as unknown as bigint, storageDepositLimit: null },
     Array.from(node),
     key
   );
-  return output?.toJSON() as string | null;
+  const raw = unwrapOk<{ ok?: string } | string>(output?.toJSON());
+  if (!raw) return null;
+  if (typeof raw === "object" && "ok" in raw) return raw.ok ?? null;
+  return raw as string;
 }
 
 export async function setText(
@@ -57,7 +63,7 @@ export async function setText(
 ): Promise<TxResult> {
   const contract = getResolverContract(api, address, abi);
   const tx = contract.tx.setText(
-    { gasLimit: weight(api, 10_000_000_000n, 10_000n) as unknown as bigint },
+    { gasLimit: weight(api, 30_000_000_000n, 524_288n) as unknown as bigint, storageDepositLimit: null },
     Array.from(node),
     key,
     value
@@ -75,7 +81,7 @@ export async function setAddr(
 ): Promise<TxResult> {
   const contract = getResolverContract(api, address, abi);
   const tx = contract.tx.setAddr(
-    { gasLimit: weight(api, 10_000_000_000n, 10_000n) as unknown as bigint },
+    { gasLimit: weight(api, 30_000_000_000n, 524_288n) as unknown as bigint, storageDepositLimit: null },
     Array.from(node),
     addr
   );

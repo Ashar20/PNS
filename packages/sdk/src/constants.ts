@@ -53,10 +53,4 @@ export const MAINNET_ADDRESSES: ContractAddresses = {
   attestation: "",
 };
 
-export const LOCAL_ADDRESSES: ContractAddresses = {
-  registry: "",
-  resolver: "",
-  reverseRegistrar: "",
-  registrar: "",
-  attestation: "",
-};
+export { LOCAL_ADDRESSES } from "./constants/local.js";

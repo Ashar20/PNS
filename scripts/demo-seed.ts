@@ -60,7 +60,7 @@ async function callContract(
   return new Promise<void>((resolve, reject) => {
     contract.tx[method](
       {
-        gasLimit: api.registry.createType("WeightV2", { refTime: 10_000_000_000n, proofSize: 10_000n }),
+        gasLimit: api.registry.createType("WeightV2", { refTime: 30_000_000_000n, proofSize: 131_072n }),
         value,
       },
       ...args
@@ -109,7 +109,7 @@ async function main() {
   // Check if leo.pot already registered
   const { output: leoAvail } = await registrarContract.query.available(
     alice.address,
-    { gasLimit: api.registry.createType("WeightV2", { refTime: 5_000_000_000n, proofSize: 5_000n }) },
+    { gasLimit: api.registry.createType("WeightV2", { refTime: 30_000_000_000n, proofSize: 131_072n }) },
     "leo"
   );
 
@@ -124,7 +124,7 @@ async function main() {
   // Check bandit-dao.pot
   const { output: bandAvail } = await registrarContract.query.available(
     alice.address,
-    { gasLimit: api.registry.createType("WeightV2", { refTime: 5_000_000_000n, proofSize: 5_000n }) },
+    { gasLimit: api.registry.createType("WeightV2", { refTime: 30_000_000_000n, proofSize: 131_072n }) },
     "bandit-dao"
   );
 

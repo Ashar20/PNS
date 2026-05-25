@@ -6,20 +6,6 @@ pub mod registrar {
     use ink::prelude::string::String;
     use ink::storage::Mapping;
 
-    #[ink::trait_definition]
-    pub trait IRegistry {
-        #[ink(message)]
-        fn set_subnode_owner(
-            &mut self,
-            node: [u8; 32],
-            label_hash: [u8; 32],
-            new_owner: AccountId,
-        ) -> Option<[u8; 32]>;
-
-        #[ink(message)]
-        fn owner(&self, node: [u8; 32]) -> AccountId;
-    }
-
     #[ink(storage)]
     pub struct Registrar {
         registry: AccountId,
@@ -116,10 +102,22 @@ pub mod registrar {
                     .expect("refund failed");
             }
 
-            let mut registry: ink::contract_ref!(IRegistry) = self.registry.into();
-            let subnode = registry
-                .set_subnode_owner(self.base_node, label_hash, owner)
-                .ok_or(Error::RegistryCallFailed)?;
+            // Use build_call with explicit selector (blake2b("set_subnode_owner")[..4] = 0x55255750).
+            // proof_size_limit uses near-u64::MAX as required by Portaldot's contracts pallet.
+            use ink::env::call::{build_call, ExecutionInput, Selector};
+            let call_result = build_call::<ink::env::DefaultEnvironment>()
+                .call(self.registry)
+                .ref_time_limit(10_000_000_000)
+                .proof_size_limit(11_990_383_647_911_208_550)
+                .exec_input(
+                    ExecutionInput::new(Selector::new([0x55, 0x25, 0x57, 0x50]))
+                        .push_arg(self.base_node)
+                        .push_arg(label_hash)
+                        .push_arg(owner),
+                )
+                .returns::<Option<[u8; 32]>>()
+                .invoke();
+            let subnode = call_result.ok_or(Error::RegistryCallFailed)?;
 
             self.env().emit_event(NameRegistered {
                 label: label.clone(),

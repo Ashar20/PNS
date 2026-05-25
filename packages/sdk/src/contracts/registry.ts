@@ -1,7 +1,7 @@
 import type { ApiPromise } from "@polkadot/api";
 import type { KeyringPair } from "@polkadot/keyring/types";
 import type { TxResult } from "../types.js";
-import { signAndSend } from "../utils.js";
+import { signAndSend, unwrapOk } from "../utils.js";
 import { ContractPromise } from "@polkadot/api-contract";
 
 export function getRegistryContract(api: ApiPromise, address: string, abi: unknown) {
@@ -18,11 +18,14 @@ export async function getOwner(
   const contract = getRegistryContract(api, address, abi);
   const { output } = await contract.query.owner(
     caller,
-    { gasLimit: (api.registry.createType("WeightV2", { refTime: 5_000_000_000n, proofSize: 5_000n })) as unknown as bigint },
+    { gasLimit: (api.registry.createType("WeightV2", { refTime: 30_000_000_000n, proofSize: 131_072n })) as unknown as bigint, storageDepositLimit: null },
     Array.from(node)
   );
-  const result = output?.toJSON() as string | null;
-  return result;
+  const json = output?.toJSON() as { ok?: string } | string | null;
+  if (!json) return null;
+  // ink! Result<AccountId, Error> wraps the value in { ok: "0x..." }
+  const addr = typeof json === "object" && "ok" in json ? json.ok : (json as string);
+  return addr ?? null;
 }
 
 export async function setSubnodeOwner(
@@ -36,7 +39,7 @@ export async function setSubnodeOwner(
 ): Promise<TxResult> {
   const contract = getRegistryContract(api, address, abi);
   const tx = contract.tx.setSubnodeOwner(
-    { gasLimit: (api.registry.createType("WeightV2", { refTime: 10_000_000_000n, proofSize: 10_000n })) as unknown as bigint },
+    { gasLimit: (api.registry.createType("WeightV2", { refTime: 30_000_000_000n, proofSize: 131_072n })) as unknown as bigint, storageDepositLimit: null },
     Array.from(node),
     Array.from(labelHash),
     newOwner
@@ -54,7 +57,7 @@ export async function setResolver(
 ): Promise<TxResult> {
   const contract = getRegistryContract(api, address, abi);
   const tx = contract.tx.setResolver(
-    { gasLimit: (api.registry.createType("WeightV2", { refTime: 10_000_000_000n, proofSize: 10_000n })) as unknown as bigint },
+    { gasLimit: (api.registry.createType("WeightV2", { refTime: 30_000_000_000n, proofSize: 131_072n })) as unknown as bigint, storageDepositLimit: null },
     Array.from(node),
     resolver
   );
@@ -71,8 +74,8 @@ export async function recordExists(
   const contract = getRegistryContract(api, address, abi);
   const { output } = await contract.query.recordExists(
     caller,
-    { gasLimit: (api.registry.createType("WeightV2", { refTime: 5_000_000_000n, proofSize: 5_000n })) as unknown as bigint },
+    { gasLimit: (api.registry.createType("WeightV2", { refTime: 30_000_000_000n, proofSize: 131_072n })) as unknown as bigint, storageDepositLimit: null },
     Array.from(node)
   );
-  return output?.toJSON() as boolean;
+  return unwrapOk<boolean>(output?.toJSON()) ?? false;
 }

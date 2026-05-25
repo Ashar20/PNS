@@ -28,7 +28,7 @@ export function wrapAsMulti(
     sorted,
     maybeTimepoint,
     call,
-    { refTime: 10_000_000_000n, proofSize: 10_000n }
+    { refTime: 30_000_000_000n, proofSize: 131_072n }
   );
 }
 
@@ -45,6 +45,6 @@ export function wrapApproveAsMulti(
     sortSigners(otherSignatories),
     maybeTimepoint,
     callHash,
-    { refTime: 10_000_000_000n, proofSize: 10_000n }
+    { refTime: 30_000_000_000n, proofSize: 131_072n }
   );
 }

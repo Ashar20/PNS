@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { usePNSClient } from "../../../hooks/usePNSClient";
@@ -20,16 +22,19 @@ export default function AttestPage() {
 
   const handleAttest = async () => {
     if (!client || !selected || !issuerName || !payload) return;
+    if (selected.source !== "dev" || !selected.signer) {
+      setErrMsg("Extension wallet signing for attestation not yet wired up. Use a dev account.");
+      setStatus("error");
+      return;
+    }
     setStatus("attesting");
     try {
-      const { web3FromAddress } = await import("@polkadot/extension-dapp");
-      const injector = await web3FromAddress(selected.address);
       await client.attest({
         issuerName,
         subjectName: subjectName as string,
         schema,
         payload: new TextEncoder().encode(payload),
-        signer: selected as never,
+        signer: selected.signer,
       });
       setStatus("done");
     } catch (e) {
@@ -90,7 +95,7 @@ export default function AttestPage() {
 
         {status === "done" && (
           <div className="bg-green-900/20 border border-green-800 rounded-xl px-4 py-3 text-sm text-green-300">
-            Attestation submitted.
+            Attestation submitted successfully.
           </div>
         )}
         {status === "error" && (

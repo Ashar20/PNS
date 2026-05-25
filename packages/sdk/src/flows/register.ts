@@ -25,12 +25,13 @@ export async function registerName(
 ): Promise<TxResult> {
   normaliseLabel(opts.label);
   const contract = new ContractPromise(api, opts.registrarAbi as string, opts.registrarAddress);
-  const gasLimit = weight(api, 10_000_000_000n, 10_000n) as unknown as bigint;
+  // register() makes a cross-contract call to registry — needs larger proofSize budget
+  const gasLimit = weight(api, 30_000_000_000n, 524_288n) as unknown as bigint;
 
   if (opts.setIdentityFields) {
     const { buildIdentityInfo } = await import("../pallets/identity.js");
     const contractTx = contract.tx.register(
-      { gasLimit, value: opts.registrationPrice },
+      { gasLimit, value: opts.registrationPrice, storageDepositLimit: null },
       opts.label,
       opts.owner
     );
@@ -46,7 +47,7 @@ export async function registerName(
   }
 
   const tx = contract.tx.register(
-    { gasLimit, value: opts.registrationPrice },
+    { gasLimit, value: opts.registrationPrice, storageDepositLimit: null },
     opts.label,
     opts.owner
   );

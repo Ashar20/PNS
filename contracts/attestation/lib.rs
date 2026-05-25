@@ -5,11 +5,8 @@ pub mod attestation {
     use ink::prelude::{string::String, vec::Vec};
     use ink::storage::Mapping;
 
-    #[ink::trait_definition]
-    pub trait IRegistry {
-        #[ink(message)]
-        fn owner(&self, node: [u8; 32]) -> AccountId;
-    }
+    // owner selector: blake2b("owner")[..4] = 0xfeaea4fa
+    const SEL_OWNER: [u8; 4] = [0xfe, 0xae, 0xa4, 0xfa];
 
     #[derive(scale::Encode, scale::Decode, Debug, Clone)]
     #[cfg_attr(feature = "std", derive(scale_info::TypeInfo, ink::storage::traits::StorageLayout))]
@@ -72,8 +69,15 @@ pub mod attestation {
         }
 
         fn caller_owns_node(&self, node: [u8; 32]) -> bool {
-            let registry: ink::contract_ref!(IRegistry) = self.registry.into();
-            registry.owner(node) == self.env().caller()
+            use ink::env::call::{build_call, ExecutionInput, Selector};
+            let owner: AccountId = build_call::<ink::env::DefaultEnvironment>()
+                .call(self.registry)
+                .ref_time_limit(5_000_000_000)
+                .proof_size_limit(11_990_383_647_911_208_550)
+                .exec_input(ExecutionInput::new(Selector::new(SEL_OWNER)).push_arg(node))
+                .returns::<AccountId>()
+                .invoke();
+            owner == self.env().caller()
         }
 
         #[ink(message)]

@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { usePNSClient } from "../../hooks/usePNSClient";

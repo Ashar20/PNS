@@ -6,22 +6,11 @@ pub mod community_registrar {
     use ink::prelude::{string::String, vec::Vec};
     use ink::storage::Mapping;
 
-    #[ink::trait_definition]
-    pub trait IRegistry {
-        #[ink(message)]
-        fn owner(&self, node: [u8; 32]) -> AccountId;
-
-        #[ink(message)]
-        fn set_subnode_owner(
-            &mut self,
-            node: [u8; 32],
-            label_hash: [u8; 32],
-            new_owner: AccountId,
-        ) -> Option<[u8; 32]>;
-
-        #[ink(message)]
-        fn set_owner(&mut self, node: [u8; 32], new_owner: AccountId);
-    }
+    // Registry selectors (blake2b of message name, first 4 bytes big-endian):
+    // set_subnode_owner = 0x55255750
+    // set_owner         = 0x367facd6
+    const SEL_SET_SUBNODE_OWNER: [u8; 4] = [0x55, 0x25, 0x57, 0x50];
+    const SEL_SET_OWNER: [u8; 4] = [0x36, 0x7f, 0xac, 0xd6];
 
     #[ink(storage)]
     pub struct CommunityRegistrar {
@@ -120,10 +109,20 @@ pub mod community_registrar {
             if self.members.contains(label_hash) {
                 return Err(Error::AlreadyMember);
             }
-            let mut registry: ink::contract_ref!(IRegistry) = self.registry.into();
-            let subnode = registry
-                .set_subnode_owner(self.parent_node, label_hash, member)
-                .ok_or(Error::RegistryCallFailed)?;
+            use ink::env::call::{build_call, ExecutionInput, Selector};
+            let subnode: Option<[u8; 32]> = build_call::<ink::env::DefaultEnvironment>()
+                .call(self.registry)
+                .ref_time_limit(10_000_000_000)
+                .proof_size_limit(11_990_383_647_911_208_550)
+                .exec_input(
+                    ExecutionInput::new(Selector::new(SEL_SET_SUBNODE_OWNER))
+                        .push_arg(self.parent_node)
+                        .push_arg(label_hash)
+                        .push_arg(member),
+                )
+                .returns::<Option<[u8; 32]>>()
+                .invoke();
+            let subnode = subnode.ok_or(Error::RegistryCallFailed)?;
 
             self.members.insert(label_hash, &member);
             self.roles.insert(label_hash, &role);
@@ -150,9 +149,19 @@ pub mod community_registrar {
             let member = self.members.get(label_hash).ok_or(Error::NotMember)?;
             let subnode = Self::subnode(self.parent_node, label_hash);
 
-            let mut registry: ink::contract_ref!(IRegistry) = self.registry.into();
+            use ink::env::call::{build_call, ExecutionInput, Selector};
             // Transfer subnode ownership to zero address (effectively null)
-            registry.set_owner(subnode, AccountId::from([0u8; 32]));
+            build_call::<ink::env::DefaultEnvironment>()
+                .call(self.registry)
+                .ref_time_limit(10_000_000_000)
+                .proof_size_limit(11_990_383_647_911_208_550)
+                .exec_input(
+                    ExecutionInput::new(Selector::new(SEL_SET_OWNER))
+                        .push_arg(subnode)
+                        .push_arg(AccountId::from([0u8; 32])),
+                )
+                .returns::<()>()
+                .invoke();
 
             self.members.remove(label_hash);
             self.roles.remove(label_hash);

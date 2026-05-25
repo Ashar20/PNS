@@ -43,7 +43,7 @@ async function deployContract(
   return new Promise((resolve, reject) => {
     const tx = code.tx["new"](
       {
-        gasLimit: api.registry.createType("WeightV2", { refTime: 100_000_000_000n, proofSize: 100_000n }),
+        gasLimit: api.registry.createType("WeightV2", { refTime: 100_000_000_000n, proofSize: 131_072n }),
         storageDepositLimit: null,
         value,
       },
@@ -123,12 +123,21 @@ async function main() {
   const potLabelHash = Array.from(labelHash("pot"));
   await new Promise<void>((resolve, reject) => {
     registryContract.tx.setSubnodeOwner(
-      { gasLimit: api.registry.createType("WeightV2", { refTime: 10_000_000_000n, proofSize: 10_000n }) },
+      {
+        gasLimit: api.registry.createType("WeightV2", { refTime: 30_000_000_000n, proofSize: 131_072n }) as unknown as bigint,
+        storageDepositLimit: null,
+      },
       Array.from(new Uint8Array(32)),
       potLabelHash,
       registrarAddress
-    ).signAndSend(deployer, ({ status }) => {
-      if (status.isFinalized) resolve();
+    ).signAndSend(deployer, ({ status, events }) => {
+      if (status.isFinalized) {
+        const failed = events.some(({ event }: any) =>
+          event.section === "system" && event.method === "ExtrinsicFailed"
+        );
+        if (failed) reject(new Error("setSubnodeOwner extrinsic failed"));
+        else resolve();
+      }
     }).catch(reject);
   });
   console.log("  Root wired.");

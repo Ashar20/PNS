@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { usePNSClient } from "../../../hooks/usePNSClient";
@@ -20,26 +22,45 @@ export default function ClaimPage() {
   const handleClaim = async () => {
     if (!client || !selected) return;
     setStatus("claiming");
+    setErrorMsg(null);
     try {
-      const { web3FromAddress } = await import("@polkadot/extension-dapp");
-      const injector = await web3FromAddress(selected.address);
-      // Build a signer-compatible KeyringPair from the extension injector
-      // @polkadot/api supports InjectedSigner via signAndSend
-      const result = await client.api.tx.contracts
-        .call(
-          client.addresses.registrar ?? "",
-          0,
-          { refTime: 10_000_000_000n, proofSize: 10_000n },
-          null,
-          []
-        )
-        .signAndSend(selected.address, { signer: injector.signer }, (r) => {
-          if (r.status.isFinalized) {
-            setTxHash(r.status.asFinalized.toHex());
-            setStatus("done");
-            setTimeout(() => router.push(`/${name}`), 2000);
-          }
+      let result;
+      if (selected.source === "dev" && selected.signer) {
+        result = await client.registerName(label, selected.address, selected.signer);
+      } else {
+        const { web3FromAddress } = await import("@polkadot/extension-dapp");
+        const injector = await web3FromAddress(selected.address);
+        // Build a pseudo-signer that wraps the extension injector
+        const { Keyring } = await import("@polkadot/keyring");
+        // For extension accounts we need to use signAndSend with injector directly
+        const { ContractPromise } = await import("@polkadot/api-contract");
+        const abis = (client as unknown as { abis: Record<string, unknown> }).abis;
+        const contract = new ContractPromise(client.api, abis.registrar as string, client.addresses.registrar);
+        const gasLimit = client.api.registry.createType("WeightV2", { refTime: 30_000_000_000n, proofSize: 524_288n }) as unknown as bigint;
+        const { REGISTRATION_PRICE } = await import("@pns/sdk");
+        const tx = contract.tx.register(
+          { gasLimit, value: REGISTRATION_PRICE, storageDepositLimit: null },
+          label,
+          selected.address
+        );
+        await new Promise<void>((resolve, reject) => {
+          tx.signAndSend(selected.address, { signer: injector.signer }, (r) => {
+            if (r.status.isFinalized) {
+              const failed = r.events.some(({ event }) =>
+                event.section === "system" && event.method === "ExtrinsicFailed"
+              );
+              if (failed) reject(new Error("Extrinsic failed on-chain"));
+              else { setTxHash(r.status.asFinalized.toHex()); resolve(); }
+            }
+          }).catch(reject);
         });
+        setStatus("done");
+        setTimeout(() => router.push(`/${name}`), 2000);
+        return;
+      }
+      setTxHash(result.blockHash ?? null);
+      setStatus("done");
+      setTimeout(() => router.push(`/${name}`), 2000);
     } catch (e) {
       setErrorMsg(String(e));
       setStatus("error");
@@ -51,8 +72,7 @@ export default function ClaimPage() {
       <div>
         <h2 className="text-3xl font-bold text-neutral-100">Claim {name}</h2>
         <p className="text-neutral-400 mt-2">
-          Register this name on Portaldot for 1 POT per year.
-          Your name will appear in Polkadot.js apps natively.
+          Register this name on Portaldot for 1 POT. Your name will appear natively in Polkadot.js apps.
         </p>
       </div>
 
@@ -71,8 +91,8 @@ export default function ClaimPage() {
         </div>
         <hr className="border-neutral-700" />
         <p className="text-xs text-neutral-500">
-          This transaction also calls <code className="bg-neutral-800 px-1 rounded">identity.setIdentity</code> to
-          set your display name natively in the Substrate identity pallet.
+          This calls <code className="bg-neutral-800 px-1 rounded">Registrar.register</code> on-chain,
+          which sets the owner in the Registry contract.
         </p>
       </div>
 
@@ -82,18 +102,24 @@ export default function ClaimPage() {
           <WalletConnect />
         </div>
       ) : (
-        <button
-          onClick={handleClaim}
-          disabled={status === "claiming" || !client}
-          className="w-full py-4 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 text-white font-semibold rounded-xl transition-colors"
-        >
-          {status === "claiming" ? "Waiting for signature…" : `Claim ${name}`}
-        </button>
+        <div className="space-y-3">
+          <p className="text-sm text-neutral-400">
+            Registering as: <span className="text-neutral-200 font-mono">{selected.name ?? selected.address.slice(0, 16) + "…"}</span>
+            {selected.source === "dev" && <span className="ml-2 text-xs text-violet-400">(dev)</span>}
+          </p>
+          <button
+            onClick={handleClaim}
+            disabled={status === "claiming" || !client}
+            className="w-full py-4 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 text-white font-semibold rounded-xl transition-colors"
+          >
+            {status === "claiming" ? "Waiting for confirmation…" : `Claim ${name}`}
+          </button>
+        </div>
       )}
 
       {status === "done" && txHash && (
         <div className="bg-green-900/20 border border-green-800 rounded-xl px-4 py-3 text-sm text-green-300">
-          Success! Block: <code className="font-mono text-xs">{txHash.slice(0, 20)}…</code>
+          Registered! Block: <code className="font-mono text-xs">{txHash.slice(0, 20)}…</code>
           <br />Redirecting to your profile…
         </div>
       )}

@@ -1,0 +1,19 @@
+{
+  "name": "pns",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "test:e2e": "pnpm --filter @pns/web test:e2e",
+    "chain:verify": "tsx scripts/chain-verify.ts",
+    "deploy:local": "tsx scripts/deploy.ts --network local",
+    "deploy:mainnet": "tsx scripts/deploy.ts --network mainnet",
+    "demo:seed": "tsx scripts/demo-seed.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0"
+  }
+}

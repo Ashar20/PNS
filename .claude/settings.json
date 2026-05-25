@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p /Users/silas/PNS/apps/web/src/app/claim/\\\\[label\\\\] \\\\ *)",
+      "Bash(cargo contract *)",
+      "Bash(nc -z 127.0.0.1 9944)",
+      "Bash(rustup target *)",
+      "Bash(rustup show *)",
+      "Bash(npm --version)",
+      "Bash(cargo install *)",
+      "Bash(curl -sL https://github.com/paritytech/substrate-contracts-node/releases/download/v0.42.0/substrate-contracts-node-mac-universal.tar.gz -o /tmp/scn.tar.gz)",
+      "Bash(tar xzf *)",
+      "Bash(cp /private/tmp/substrate-contracts-node-mac/substrate-contracts-node /usr/local/bin/substrate-contracts-node)",
+      "Bash(cp /private/tmp/substrate-contracts-node-mac/substrate-contracts-node ~/substrate-contracts-node)",
+      "Bash(chmod +x ~/substrate-contracts-node)",
+      "Bash(~/substrate-contracts-node --version)"
+    ],
+    "additionalDirectories": [
+      "/Users/silas/PNS/apps/web/src/app/claim"
+    ]
+  }
+}

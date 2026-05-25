@@ -1,0 +1,21 @@
+[workspace]
+members = [
+    "registry",
+    "resolver",
+    "reverse",
+    "registrar",
+    "community",
+    "attestation",
+]
+resolver = "2"
+
+[workspace.dependencies]
+ink = { version = "5.0", default-features = false }
+scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
+scale-info = { version = "2.6", default-features = false, features = ["derive"] }
+
+[profile.release]
+overflow-checks = false
+
+[profile.dev]
+overflow-checks = false

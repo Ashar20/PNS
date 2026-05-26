@@ -220,13 +220,37 @@ await batch.signAndSend(alice);
 | judge | IdentityJudgement |
 
 ### Common errors and fixes
+
+#### ink! / contract errors
 | Error | Cause | Fix |
 |-------|-------|-----|
 | `ContractTrapped` (error 12) | Selector mismatch from `contract_ref!` | Use `build_call` with hardcoded selector |
 | `OutOfGas` (error 2) | proofSize too small for nested calls | Increase outer tx `proofSize` to `524_288n` |
+| `Extrinsic failed on-chain` | Any contract revert — label taken, wrong owner, payment too low | Check `ExtrinsicFailed` event, decode `DispatchError`; for registrar: check name availability first with `recordExists` before calling `register` |
 | `{ ok: T }` instead of `T` | ink! 5 MessageResult wrapping | Unwrap with `(output?.toJSON() as {ok:T}).ok` |
-| `Cannot read properties of undefined (reading 'V5')` | ABI not loaded | Call `contract.setAbis(abis)` before use |
+| `Cannot read properties of undefined (reading 'V5')` | ABI not loaded before contract call | Fetch ABIs and call `client.setAbis(abis)` before any query/tx |
 | Transaction exhausts block limits | Using internal proof_size_limit as outer tx proofSize | Outer tx: `131_072n`–`524_288n`; inner `build_call`: `11_990_383_647_911_208_550` |
+| `Invalid typed array length: 0x4c75…` | Contract returns `[u8;32]` as hex string, code treats it as number array | Add `hexToU8a` helper; check both string and array formats |
+| Attestation id always 0n | Contract events come through as `ContractEmitted`, not named events — parsing `ev.method === "Attested"` never matches | After tx, query `listBySubject` and take the last entry |
+
+#### Node / RPC errors
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `WebSocket is not open` / RPC disconnected | `substrate-contracts-node` process died or was never started | Run `./substrate-contracts-node --dev --tmp` (or `./portaldot --dev --tmp`); check with `curl -s http://127.0.0.1:9944` |
+| `1010: Invalid Transaction: Inability to pay some fees` | Account has no balance on a fresh node restarted with `--tmp` | Node wiped state — re-run `pnpm run deploy` then `pnpm run demo:seed` to redeploy contracts and fund accounts |
+| `contracts.ContractNotFound` | Contracts deployed to old node instance, node restarted with `--tmp` | Same as above — redeploy after every node restart |
+| `getContractQuery` returns garbage after node restart | Stale contract addresses in `LOCAL_ADDRESSES` | Re-run `npx tsx scripts/deploy.ts` — it overwrites `packages/sdk/src/constants/local.ts` |
+| `Cannot find module './vendor-chunks/@polkadot+util@…'` | Stale `.next` build cache after dependency change | Delete `apps/web/.next` and restart `pnpm dev` |
+| Frontend shows 404 on all pages | `"use client"` page without `export const dynamic = "force-dynamic"` | Add `export const dynamic = "force-dynamic"` at the top of every client page |
+| Search shows "already owned" for every name | `owner()` returns SS58 zero address `5C4hrfj…`, not `0x000…` — equality check fails | Use `recordExists()` (returns boolean) instead of comparing owner address |
+| Name shows as available right after claiming | React Query serving stale `false` from cache | Set `staleTime: 0` on availability query and call `invalidateQueries` after successful registration |
+
+#### Dev account / wallet errors
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `injectedWeb3` / extension not found | No browser extension installed, trying to use extension path for dev account | Use `Keyring.addFromUri("//Alice")` path; check `account.source === "dev"` and use `account.signer` (KeyringPair) directly |
+| `cryptoWaitReady` must be called first | Using `@polkadot/keyring` before WASM is initialised | `await cryptoWaitReady()` before any `Keyring` operations |
+| Wallet state not shared across pages | Each component called `useWallet()` with its own local state | Wrap app in `WalletProvider` (React Context); all pages share a singleton |
 
 ## How to respond
 

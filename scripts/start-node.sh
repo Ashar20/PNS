@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 # Starts the local Substrate contracts node for PNS development.
 #
+# NOTE: We use substrate-contracts-node (not portaldot_dev) because the
+# Portaldot binary ships an ink! 3 era contracts pallet (no storageDepositLimit,
+# no WeightV2) which is incompatible with our ink! 5 contracts.
+# substrate-contracts-node has the modern contracts pallet.
+#
 # Usage:
 #   ./scripts/start-node.sh            # uses default binary path
 #   NODE_BIN=/path/to/node ./scripts/start-node.sh

@@ -22,6 +22,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <span className="text-neutral-500 text-sm hidden sm:block">Portaldot Name Service</span>
             </Link>
             <nav className="flex items-center gap-6">
+              <Link href="/wallet" className="text-sm text-neutral-400 hover:text-neutral-200">
+                Wallet
+              </Link>
+              <Link href="/my-names" className="text-sm text-neutral-400 hover:text-neutral-200">
+                My Names
+              </Link>
               <Link href="/communities" className="text-sm text-neutral-400 hover:text-neutral-200">
                 Communities
               </Link>

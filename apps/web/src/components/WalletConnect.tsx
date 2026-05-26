@@ -11,10 +11,13 @@ const DEV_ACCOUNTS = [
 ];
 
 export function WalletConnect() {
-  const { accounts, selected, isConnecting, error, connect, connectDev, disconnect, selectAccount } = useWallet();
+  const { accounts, selected, isConnecting, error, connect, connectDev, connectByName, disconnect, selectAccount } = useWallet();
   const [showPanel, setShowPanel] = useState(false);
   const [seedInput, setSeedInput] = useState("");
   const [seedName, setSeedName] = useState("");
+  const [potName, setPotName] = useState("");
+  const [potUri, setPotUri] = useState("");
+  const [potErr, setPotErr] = useState<string | null>(null);
 
   const handleSeedConnect = async () => {
     if (!seedInput.trim()) return;
@@ -26,6 +29,18 @@ export function WalletConnect() {
 
   const handleDevAccount = async (uri: string, name: string) => {
     await connectDev(uri, name);
+    setShowPanel(false);
+  };
+
+  const handleNameConnect = async () => {
+    if (!potName.trim() || !potUri.trim()) {
+      setPotErr("Enter both a .pot name and a signing URI.");
+      return;
+    }
+    setPotErr(null);
+    await connectByName(potName.trim(), potUri.trim());
+    setPotName("");
+    setPotUri("");
     setShowPanel(false);
   };
 
@@ -50,8 +65,38 @@ export function WalletConnect() {
         </div>
 
         {showPanel && (
-          <div className="absolute right-0 top-12 z-50 w-72 bg-neutral-900 border border-neutral-700 rounded-xl shadow-2xl p-4 space-y-4">
-            <p className="text-xs text-neutral-400 font-medium uppercase tracking-wide">Dev Accounts</p>
+          <div className="absolute right-0 top-12 z-50 w-80 bg-neutral-900 border border-neutral-700 rounded-xl shadow-2xl p-4 space-y-4">
+
+            {/* Connect by .pot name — primary flow */}
+            <div className="space-y-2">
+              <p className="text-xs text-violet-400 font-semibold uppercase tracking-wide">Connect by .pot name</p>
+              <input
+                type="text"
+                value={potName}
+                onChange={(e) => { setPotName(e.target.value); setPotErr(null); }}
+                placeholder="silas.pot"
+                className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-neutral-200 placeholder:text-neutral-500 outline-none focus:border-violet-600 font-mono"
+              />
+              <input
+                type="text"
+                value={potUri}
+                onChange={(e) => { setPotUri(e.target.value); setPotErr(null); }}
+                placeholder="Signing URI (e.g. //Alice or seed phrase)"
+                className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-neutral-200 placeholder:text-neutral-500 outline-none focus:border-violet-600 font-mono"
+              />
+              {potErr && <p className="text-xs text-red-400">{potErr}</p>}
+              <button
+                onClick={handleNameConnect}
+                disabled={!potName.trim() || !potUri.trim() || isConnecting}
+                className="w-full py-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 text-white text-sm font-semibold rounded-lg transition-colors"
+              >
+                {isConnecting ? "Connecting…" : "Connect as .pot name"}
+              </button>
+            </div>
+
+            <hr className="border-neutral-700" />
+
+            <p className="text-xs text-neutral-400 font-medium uppercase tracking-wide">Quick Dev Accounts</p>
             <div className="grid grid-cols-2 gap-2">
               {DEV_ACCOUNTS.map(({ name, uri }) => (
                 <button
@@ -79,22 +124,20 @@ export function WalletConnect() {
               <textarea
                 value={seedInput}
                 onChange={(e) => setSeedInput(e.target.value)}
-                placeholder="Enter seed phrase or //URI (e.g. //Alice)"
-                rows={3}
+                placeholder="Enter seed phrase or //URI"
+                rows={2}
                 className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-neutral-200 placeholder:text-neutral-500 outline-none focus:border-violet-600 resize-none font-mono"
               />
               <button
                 onClick={handleSeedConnect}
                 disabled={!seedInput.trim() || isConnecting}
-                className="w-full py-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 text-white text-sm font-medium rounded-lg transition-colors"
+                className="w-full py-2 bg-neutral-700 hover:bg-neutral-600 disabled:opacity-40 text-neutral-200 text-sm font-medium rounded-lg transition-colors"
               >
                 Import
               </button>
             </div>
 
-            {error && (
-              <p className="text-xs text-red-400">{error}</p>
-            )}
+            {error && <p className="text-xs text-red-400">{error}</p>}
 
             <button
               onClick={() => setShowPanel(false)}

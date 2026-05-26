@@ -4,20 +4,37 @@ export const dynamic = "force-dynamic";
 
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
 import { usePNSClient } from "../../../hooks/usePNSClient";
 import { useWallet } from "../../../hooks/useWallet";
 import { WalletConnect } from "../../../components/WalletConnect";
+import { namehash, normaliseName, recordExists } from "@pns/sdk";
 
 export default function ClaimPage() {
   const { label } = useParams<{ label: string }>();
   const router = useRouter();
-  const { client } = usePNSClient();
+  const { client, isConnecting } = usePNSClient();
   const { selected } = useWallet();
+  const queryClient = useQueryClient();
   const [status, setStatus] = useState<"idle" | "claiming" | "done" | "error">("idle");
   const [txHash, setTxHash] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const name = `${label}.pot`;
+
+  const { data: alreadyExists, isLoading: checkingAvailability } = useQuery({
+    queryKey: ["availability", label],
+    queryFn: async () => {
+      const node = namehash(normaliseName(name));
+      const caller = client!.api.registry.createType("AccountId", new Uint8Array(32)).toString();
+      const abis = (client as unknown as { abis: Record<string, unknown> }).abis;
+      return recordExists(client!.api, client!.addresses.registry, abis.registry, node, caller);
+    },
+    enabled: !!client,
+    // always re-check; don't serve stale "available" from cache
+    staleTime: 0,
+  });
 
   const handleClaim = async () => {
     if (!client || !selected) return;
@@ -50,7 +67,7 @@ export default function ClaimPage() {
                 event.section === "system" && event.method === "ExtrinsicFailed"
               );
               if (failed) reject(new Error("Extrinsic failed on-chain"));
-              else { setTxHash(r.status.asFinalized.toHex()); resolve(); }
+              else { setTxHash(r.status.asFinalized.toHex()); queryClient.invalidateQueries({ queryKey: ["availability", label] }); resolve(); }
             }
           }).catch(reject);
         });
@@ -60,6 +77,7 @@ export default function ClaimPage() {
       }
       setTxHash(result.blockHash ?? null);
       setStatus("done");
+      await queryClient.invalidateQueries({ queryKey: ["availability", label] });
       setTimeout(() => router.push(`/${name}`), 2000);
     } catch (e) {
       setErrorMsg(String(e));
@@ -96,7 +114,19 @@ export default function ClaimPage() {
         </p>
       </div>
 
-      {!selected ? (
+      {isConnecting || checkingAvailability ? (
+        <p className="text-sm text-neutral-500">Checking availability…</p>
+      ) : alreadyExists ? (
+        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl px-6 py-5 space-y-3">
+          <p className="text-red-400 font-semibold">This name is already registered.</p>
+          <Link
+            href={`/${name}`}
+            className="inline-block px-5 py-2.5 bg-neutral-700 hover:bg-neutral-600 text-neutral-200 font-medium rounded-xl transition-colors"
+          >
+            View Profile →
+          </Link>
+        </div>
+      ) : !selected ? (
         <div className="space-y-3">
           <p className="text-sm text-neutral-400">Connect your wallet to proceed.</p>
           <WalletConnect />

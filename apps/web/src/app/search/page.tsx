@@ -8,15 +8,18 @@ import { NameInput } from "../../components/NameInput";
 import { usePNSClient } from "../../hooks/usePNSClient";
 import { useState, Suspense } from "react";
 import Link from "next/link";
+import { namehash, normaliseName, recordExists } from "@pns/sdk";
 
 function SearchResults({ query }: { query: string }) {
   const { client } = usePNSClient();
-  const { data, isLoading } = useQuery({
+  const { data: exists, isLoading } = useQuery({
     queryKey: ["availability", query],
     queryFn: async () => {
-      if (!client || !query) return null;
-      const resolved = await client.resolveName(query).catch(() => null);
-      return resolved;
+      if (!client || !query) return false;
+      const node = namehash(normaliseName(query));
+      const caller = client.api.registry.createType("AccountId", new Uint8Array(32)).toString();
+      const abis = (client as unknown as { abis: Record<string, unknown> }).abis;
+      return recordExists(client.api, client.addresses.registry, abis.registry, node, caller);
     },
     enabled: !!client && !!query,
   });
@@ -25,7 +28,7 @@ function SearchResults({ query }: { query: string }) {
   if (isLoading) return <div className="text-neutral-500 text-sm">Checking availability…</div>;
 
   const label = query.replace(/\.pot$/, "");
-  const isAvailable = !data?.owner || data.owner === "0x" + "00".repeat(32);
+  const isAvailable = !exists;
 
   return (
     <div className="bg-neutral-900 border border-neutral-800 rounded-2xl px-6 py-5">
@@ -33,7 +36,7 @@ function SearchResults({ query }: { query: string }) {
         <div>
           <p className="text-xl font-semibold text-neutral-100">{query}</p>
           <p className={`text-sm mt-1 ${isAvailable ? "text-green-400" : "text-red-400"}`}>
-            {isAvailable ? "Available" : `Owned by ${data?.owner?.slice(0, 12)}…`}
+            {isAvailable ? "Available" : "Already registered"}
           </p>
         </div>
         {isAvailable ? (

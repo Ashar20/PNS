@@ -17,6 +17,7 @@ interface WalletState {
   error: string | null;
   connect: () => Promise<void>;
   connectDev: (uri: string, name: string) => Promise<void>;
+  connectByName: (potName: string, uri: string) => Promise<void>;
   disconnect: () => void;
   selectAccount: (account: WalletAccount) => void;
 }
@@ -84,6 +85,37 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Connect using a .pot name as the display identity, with a URI as the signer.
+  // The name is purely cosmetic — the actual signing key comes from the URI.
+  // This lets users connect as "silas.pot" while signing with e.g. //Alice.
+  const connectByName = useCallback(async (potName: string, uri: string) => {
+    setIsConnecting(true);
+    setError(null);
+    try {
+      const { Keyring } = await import("@polkadot/keyring");
+      const { cryptoWaitReady } = await import("@polkadot/util-crypto");
+      await cryptoWaitReady();
+      const keyring = new Keyring({ type: "sr25519", ss58Format: 42 });
+      const pair = keyring.addFromUri(uri);
+      const name = potName.endsWith(".pot") ? potName : `${potName}.pot`;
+      const account: WalletAccount = {
+        address: pair.address,
+        name,
+        source: "dev",
+        signer: pair,
+      };
+      setAccounts((prev) => {
+        const others = prev.filter((a) => a.address !== pair.address);
+        return [...others, account];
+      });
+      setSelected(account);
+    } catch (e) {
+      setError(`Failed to connect: ${String(e)}`);
+    } finally {
+      setIsConnecting(false);
+    }
+  }, []);
+
   const disconnect = useCallback(() => {
     setAccounts([]);
     setSelected(null);
@@ -91,7 +123,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <WalletContext.Provider value={{ accounts, selected, isConnecting, error, connect, connectDev, disconnect, selectAccount: setSelected }}>
+    <WalletContext.Provider value={{ accounts, selected, isConnecting, error, connect, connectDev, connectByName, disconnect, selectAccount: setSelected }}>
       {children}
     </WalletContext.Provider>
   );

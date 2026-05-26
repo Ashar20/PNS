@@ -87,3 +87,18 @@ export async function setAddr(
   );
   return signAndSend(tx, signer);
 }
+
+export async function setName(
+  api: ApiPromise,
+  reverseRegistrarAddress: string,
+  abi: unknown,
+  name: string,
+  signer: KeyringPair
+): Promise<TxResult> {
+  const contract = new ContractPromise(api, abi as string, reverseRegistrarAddress);
+  const tx = contract.tx.setName(
+    { gasLimit: weight(api, 30_000_000_000n, 131_072n) as unknown as bigint, storageDepositLimit: null },
+    name
+  );
+  return signAndSend(tx, signer);
+}

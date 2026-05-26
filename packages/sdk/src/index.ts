@@ -9,6 +9,7 @@ export * from "./pallets/multisig.js";
 export * from "./pallets/proxy.js";
 export * from "./pallets/bounties.js";
 export * from "./pallets/utility.js";
+export * from "./pallets/balances.js";
 
 // Contract wrappers
 export * from "./contracts/registry.js";

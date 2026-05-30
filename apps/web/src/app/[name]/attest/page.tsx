@@ -6,8 +6,9 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import { usePNSClient } from "../../../hooks/usePNSClient";
 import { useWallet } from "../../../hooks/useWallet";
-import { SCHEMAS, buildAttestTx, namehash, normaliseName } from "@pns/sdk";
+import { SCHEMAS, buildAttestTx, namehash, normaliseName, isZeroAccount } from "@pns/sdk";
 import { signAndSendTx } from "../../../lib/signer";
+import { ContractPromise } from "@polkadot/api-contract";
 
 const SCHEMA_LIST = Object.values(SCHEMAS);
 
@@ -27,11 +28,41 @@ export default function AttestPage() {
     setErrMsg("");
     try {
       const abis = (client as unknown as { abis: Record<string, unknown> }).abis;
+
+      // Pre-flight: verify the issuer name exists and is owned by the connected wallet.
+      const fullIssuerName = issuerName.includes(".") ? issuerName : `${issuerName}.pot`;
+      const issuerNode = namehash(normaliseName(fullIssuerName));
+      const registryContract = new ContractPromise(
+        client.api,
+        abis.registry as string,
+        client.addresses.registry
+      );
+      const gasQ = client.api.registry.createType("WeightV2", {
+        refTime: 10_000_000_000n,
+        proofSize: 131_072n,
+      });
+      const { output: ownerOut } = await registryContract.query.owner(
+        selected.address,
+        { gasLimit: gasQ as unknown as bigint, storageDepositLimit: null },
+        Array.from(issuerNode)
+      );
+      const ownerJson = ownerOut?.toJSON() as { ok?: string } | string | null;
+      const owner = typeof ownerJson === "object" && ownerJson && "ok" in ownerJson
+        ? ownerJson.ok
+        : ownerJson as string | null;
+
+      if (!owner || isZeroAccount(owner)) {
+        throw new Error(`"${fullIssuerName}" is not registered. Claim it first at /claim/${fullIssuerName.split(".")[0]}`);
+      }
+      if (owner !== selected.address) {
+        throw new Error(`"${fullIssuerName}" is owned by a different wallet. Sign in with the correct account.`);
+      }
+
       const tx = buildAttestTx(
         client.api,
         client.addresses.attestation,
         abis.attestation,
-        namehash(normaliseName(issuerName)),
+        issuerNode,
         namehash(normaliseName(subjectName as string)),
         schema,
         new TextEncoder().encode(payload)

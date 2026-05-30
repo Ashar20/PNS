@@ -1,5 +1,6 @@
 export { PNSClient } from "./client.js";
 export { namehash, namehashHex, labelHash, normaliseLabel, normaliseName } from "./namehash.js";
+export { isZeroAccount, unwrapOk, extractBatchError } from "./utils.js";
 export * from "./types.js";
 export * from "./constants.js";
 

@@ -14,7 +14,8 @@
 
 import { ApiPromise, WsProvider, Keyring } from "@polkadot/api";
 import { CodePromise, ContractPromise } from "@polkadot/api-contract";
-import { readFileSync, writeFileSync, mkdirSync, cpSync, execSync } from "fs";
+import { readFileSync, writeFileSync, mkdirSync, cpSync } from "fs";
+import { execSync } from "child_process";
 import { join } from "path";
 import { namehash, labelHash } from "../packages/sdk/src/namehash.js";
 

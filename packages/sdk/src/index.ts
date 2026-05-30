@@ -19,10 +19,15 @@ export * from "./contracts/community.js";
 export * from "./contracts/attestation.js";
 
 // Flows
-export { registerName } from "./flows/register.js";
+export { registerName, buildRegisterNameTx } from "./flows/register.js";
+export type { BuildRegisterNameOpts } from "./flows/register.js";
 export { claimSubname, revokeSubname } from "./flows/claim-subname.js";
 export {
   issueSubnameAsOwner,
+  buildIssueSubnameAsOwnerTx,
+  planIssueSubnameAsOwner,
+  buildPersistRegistrarMetaTx,
+  buildApproveCommunityRegistrarTx,
   listSubnamesForParent,
   getCommunityRegistrarAddress,
   persistRegistrarMeta,
@@ -31,7 +36,12 @@ export {
   COMMUNITY_REGISTRAR_RECORD,
   SUBNAME_INDEX_RECORD,
 } from "./flows/issue-subname-owner.js";
-export type { IssueSubnameAsOwnerOpts, SubnameIndexEntry } from "./flows/issue-subname-owner.js";
+export type {
+  IssueSubnameAsOwnerOpts,
+  IssueSubnameAsOwnerBaseOpts,
+  PersistRegistrarMetaOpts,
+  SubnameIndexEntry,
+} from "./flows/issue-subname-owner.js";
 export { attestFlow, listAttestationsForSubject } from "./flows/attest.js";
-export { saveProfile, diffRecords } from "./flows/save-profile.js";
-export type { SaveProfileOpts } from "./flows/save-profile.js";
+export { saveProfile, buildSaveProfileTx, diffRecords } from "./flows/save-profile.js";
+export type { SaveProfileOpts, SaveProfileBaseOpts } from "./flows/save-profile.js";

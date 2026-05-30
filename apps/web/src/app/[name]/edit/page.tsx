@@ -8,9 +8,10 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePNSClient } from "../../../hooks/usePNSClient";
 import { useWallet } from "../../../hooks/useWallet";
+import { signAndSendTx } from "../../../lib/signer";
 import { Avatar, ProfileBanner } from "../../../components/Avatar";
 import {
-  saveProfile,
+  buildSaveProfileTx,
   diffRecords,
   hasIdentityPallet,
   TEXT_KEYS,
@@ -127,15 +128,10 @@ export default function EditProfilePage() {
       setStatus("error");
       return;
     }
-    if (selected.source !== "dev" || !selected.signer) {
-      setErrMsg("Extension wallet signing is not wired yet for the batched save. Use a dev account.");
-      setStatus("error");
-      return;
-    }
     setStatus("saving");
     setErrMsg(null);
     try {
-      const result = await saveProfile(client.api, {
+      const { tx, txCount } = buildSaveProfileTx(client.api, {
         name: name as string,
         textRecords: recordDiff,
         addr: addrChanged ? addrInput.trim() : undefined,
@@ -145,10 +141,10 @@ export default function EditProfilePage() {
         resolverAbi: abis.resolver,
         reverseRegistrarAddress: client.addresses.reverseRegistrar,
         reverseRegistrarAbi: abis.reverse,
-        signer: selected.signer,
       });
-      setTxHash(result.blockHash ?? null);
-      setTxCount(result.txCount);
+      const blockHash = await signAndSendTx(tx, selected);
+      setTxHash(blockHash);
+      setTxCount(txCount);
       setStatus("done");
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["profile", name] }),

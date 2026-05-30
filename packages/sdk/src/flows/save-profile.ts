@@ -5,10 +5,10 @@ import { ContractPromise } from "@polkadot/api-contract";
 import { namehash, normaliseName } from "../namehash.js";
 import { buildIdentityInfo, hasIdentityPallet } from "../pallets/identity.js";
 import { signAndSend } from "../utils.js";
-import { TX_GAS, TX_GAS_CROSS } from "../constants.js";
+import { TX_GAS_CROSS } from "../constants.js";
 import type { ProfileFields, TxResult } from "../types.js";
 
-export interface SaveProfileOpts {
+export interface SaveProfileBaseOpts {
   /** The full normalised name, e.g. "alice.pot" */
   name: string;
 
@@ -36,7 +36,9 @@ export interface SaveProfileOpts {
   resolverAbi: unknown;
   reverseRegistrarAddress?: string;
   reverseRegistrarAbi?: unknown;
+}
 
+export interface SaveProfileOpts extends SaveProfileBaseOpts {
   signer: KeyringPair;
 }
 
@@ -68,28 +70,16 @@ function deriveIdentityInfo(
   return buildIdentityInfo(api, fields);
 }
 
-/**
- * Builds and dispatches a single utility.batchAll containing every onchain
- * write a profile-edit can produce:
- *
- *   - PublicResolver.set_text(node, key, value)   for each text record
- *   - PublicResolver.set_addr(node, addr)         if an address is provided
- *   - identity.setIdentity(info)                  if syncIdentity is true
- *   - ReverseRegistrar.set_name(name)             if setPrimary is true
- *
- * One signature, one block, all-or-nothing.
- */
-export async function saveProfile(
+/** Build unsigned profile-save extrinsic (batch or single call). */
+export function buildSaveProfileTx(
   api: ApiPromise,
-  opts: SaveProfileOpts
-): Promise<TxResult & { txCount: number }> {
+  opts: SaveProfileBaseOpts
+): { tx: SubmittableExtrinsic<"promise">; txCount: number } {
   const node = namehash(normaliseName(opts.name));
   const calls: SubmittableExtrinsic<"promise">[] = [];
 
-  const gasTx = api.registry.createType("WeightV2", TX_GAS) as unknown as bigint;
   const gasTxCross = api.registry.createType("WeightV2", TX_GAS_CROSS) as unknown as bigint;
 
-  // 1. PublicResolver.set_text — one call per record
   const resolver = new ContractPromise(api, opts.resolverAbi as string, opts.resolverAddress);
   const textRecords = opts.textRecords ?? {};
   for (const [key, value] of Object.entries(textRecords)) {
@@ -103,7 +93,6 @@ export async function saveProfile(
     );
   }
 
-  // 2. PublicResolver.set_addr
   if (opts.addr) {
     calls.push(
       resolver.tx.setAddr(
@@ -114,17 +103,11 @@ export async function saveProfile(
     );
   }
 
-  // 3. identity.setIdentity — mirror well-known fields.
-  // Silently skipped when the runtime doesn't expose pallet_identity
-  // (e.g. substrate-contracts-node) OR when the IdentityInfo type cannot be
-  // constructed against the connected runtime's metadata. Wrapped in try/catch
-  // so a partially-supporting chain never blocks the resolver writes.
   if (opts.syncIdentity && hasIdentityPallet(api)) {
     try {
       const info = deriveIdentityInfo(api, opts.name, textRecords);
       calls.push(api.tx.identity.setIdentity(info));
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.warn(
         "[saveProfile] skipping identity.setIdentity — runtime does not support it:",
         err
@@ -132,9 +115,6 @@ export async function saveProfile(
     }
   }
 
-  // 4. ReverseRegistrar.set_name — primary-name claim.
-  // The contract makes a cross-contract call to Registry.is_approved_for_all,
-  // so it needs the larger proof-size budget (TX_GAS_CROSS), not the bare one.
   if (opts.setPrimary && opts.reverseRegistrarAddress && opts.reverseRegistrarAbi) {
     const reverse = new ContractPromise(
       api,
@@ -153,10 +133,21 @@ export async function saveProfile(
     throw new Error("saveProfile: nothing to save");
   }
 
-  const tx =
-    calls.length === 1 ? calls[0] : api.tx.utility.batchAll(calls);
+  const tx = calls.length === 1 ? calls[0] : api.tx.utility.batchAll(calls);
+  return { tx, txCount: calls.length };
+}
+
+/**
+ * Builds and dispatches a single utility.batchAll containing every onchain
+ * write a profile-edit can produce. One signature, one block, all-or-nothing.
+ */
+export async function saveProfile(
+  api: ApiPromise,
+  opts: SaveProfileOpts
+): Promise<TxResult & { txCount: number }> {
+  const { tx, txCount } = buildSaveProfileTx(api, opts);
   const result = await signAndSend(tx, opts.signer);
-  return { ...result, txCount: calls.length };
+  return { ...result, txCount };
 }
 
 /** Diff helper — returns only entries whose value differs from `previous`. */

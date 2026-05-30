@@ -54,57 +54,83 @@ export async function getCommunityRegistrarAddress(
   return raw && raw.length > 10 ? raw : null;
 }
 
+export type PersistRegistrarMetaOpts = {
+  parentName: string;
+  registryAddress: string;
+  registryAbi: unknown;
+  resolverAddress: string;
+  resolverAbi: unknown;
+  registrarAddress: string;
+  index: SubnameIndexEntry[];
+  /** When false, skip set_approval_for_all (already approved). Default true. */
+  includeApproval?: boolean;
+};
+
+/** Persist registrar address + subname index on the parent resolver (optional Registry approval). */
+export function buildPersistRegistrarMetaTx(
+  api: ApiPromise,
+  opts: PersistRegistrarMetaOpts
+): SubmittableExtrinsic<"promise"> {
+  const node = namehash(normaliseName(opts.parentName));
+  const indexJson = JSON.stringify(opts.index);
+  const calls: SubmittableExtrinsic<"promise">[] = [];
+  if (opts.includeApproval !== false) {
+    calls.push(
+      buildSetApprovalForAll(
+        api,
+        opts.registryAddress,
+        opts.registryAbi,
+        opts.registrarAddress,
+        true
+      )
+    );
+  }
+  const resolver = new ContractPromise(
+    api,
+    opts.resolverAbi as string,
+    opts.resolverAddress
+  );
+  const gasLimit = weight(api, 30_000_000_000n, 524_288n) as unknown as bigint;
+  calls.push(
+    resolver.tx.setText(
+      { gasLimit: gasLimit as unknown as bigint, storageDepositLimit: null },
+      Array.from(node),
+      COMMUNITY_REGISTRAR_RECORD,
+      opts.registrarAddress
+    ),
+    resolver.tx.setText(
+      { gasLimit: gasLimit as unknown as bigint, storageDepositLimit: null },
+      Array.from(node),
+      SUBNAME_INDEX_RECORD,
+      indexJson
+    )
+  );
+  return calls.length === 1 ? calls[0] : api.tx.utility.batchAll(calls);
+}
+
 /** Persist registrar + subname list on the parent name's resolver. */
 export async function persistRegistrarMeta(
   api: ApiPromise,
+  opts: PersistRegistrarMetaOpts & { signer: KeyringPair }
+): Promise<TxResult> {
+  return signAndSend(buildPersistRegistrarMetaTx(api, opts), opts.signer);
+}
+
+export function buildApproveCommunityRegistrarTx(
+  api: ApiPromise,
   opts: {
-    parentName: string;
     registryAddress: string;
     registryAbi: unknown;
-    resolverAddress: string;
-    resolverAbi: unknown;
     registrarAddress: string;
-    index: SubnameIndexEntry[];
-    signer: KeyringPair;
   }
-): Promise<TxResult> {
-  const node = namehash(normaliseName(opts.parentName));
-  const indexJson = JSON.stringify(opts.index);
-  const approveTx = buildSetApprovalForAll(
+): SubmittableExtrinsic<"promise"> {
+  return buildSetApprovalForAll(
     api,
     opts.registryAddress,
     opts.registryAbi,
     opts.registrarAddress,
     true
   );
-  const tx = new ContractPromise(
-    api,
-    opts.resolverAbi as string,
-    opts.resolverAddress
-  ).tx.setText(
-    {
-      gasLimit: weight(api, 30_000_000_000n, 524_288n) as unknown as bigint,
-      storageDepositLimit: null,
-    },
-    Array.from(node),
-    COMMUNITY_REGISTRAR_RECORD,
-    opts.registrarAddress
-  );
-  const tx2 = new ContractPromise(
-    api,
-    opts.resolverAbi as string,
-    opts.resolverAddress
-  ).tx.setText(
-    {
-      gasLimit: weight(api, 30_000_000_000n, 524_288n) as unknown as bigint,
-      storageDepositLimit: null,
-    },
-    Array.from(node),
-    SUBNAME_INDEX_RECORD,
-    indexJson
-  );
-  const batch = api.tx.utility.batchAll([approveTx, tx, tx2]);
-  return signAndSend(batch, opts.signer);
 }
 
 /** Owner approves the CommunityRegistrar contract as a Registry operator (required for issue_subname). */
@@ -129,17 +155,10 @@ export async function approveCommunityRegistrar(
   if (already) {
     return { blockHash: "", txHash: "", events: [] };
   }
-  const tx = buildSetApprovalForAll(
-    api,
-    opts.registryAddress,
-    opts.registryAbi,
-    opts.registrarAddress,
-    true
-  );
-  return signAndSend(tx, opts.signer);
+  return signAndSend(buildApproveCommunityRegistrarTx(api, opts), opts.signer);
 }
 
-export interface IssueSubnameAsOwnerOpts {
+export interface IssueSubnameAsOwnerBaseOpts {
   registryAddress: string;
   registryAbi: unknown;
   parentName: string;
@@ -150,6 +169,11 @@ export interface IssueSubnameAsOwnerOpts {
   communityAbi: unknown;
   resolverAddress: string;
   resolverAbi: unknown;
+  /** Registry owner (parent name owner). */
+  ownerAddress: string;
+}
+
+export interface IssueSubnameAsOwnerOpts extends IssueSubnameAsOwnerBaseOpts {
   signer: KeyringPair;
 }
 
@@ -157,14 +181,12 @@ export interface IssueSubnameAsOwnerOpts {
  * Parent owner mints a subname in one batch (no multisig):
  *   CommunityRegistrar.issue_subname + identity.setSubs + proxy.addProxy
  */
-export async function issueSubnameAsOwner(
+export async function buildIssueSubnameAsOwnerTx(
   api: ApiPromise,
-  opts: IssueSubnameAsOwnerOpts
-): Promise<TxResult> {
+  opts: IssueSubnameAsOwnerBaseOpts
+): Promise<SubmittableExtrinsic<"promise">> {
   normaliseLabel(opts.label);
-  const parent = normaliseName(opts.parentName);
-  const subname = `${opts.label}.${parent}`;
-  const owner = opts.signer.address;
+  const owner = opts.ownerAddress;
 
   const approved = await isApprovedForAll(
     api,
@@ -208,9 +230,17 @@ export async function issueSubnameAsOwner(
     calls.push(buildAddProxy(api, opts.member, opts.role));
   }
 
-  const tx =
-    calls.length === 1 ? calls[0] : api.tx.utility.batchAll(calls);
-  const result = await signAndSend(tx, opts.signer);
+  return calls.length === 1 ? calls[0] : api.tx.utility.batchAll(calls);
+}
+
+/** Ordered extrinsics: mint batch, then index update on resolver if needed. */
+export async function planIssueSubnameAsOwner(
+  api: ApiPromise,
+  opts: IssueSubnameAsOwnerBaseOpts
+): Promise<SubmittableExtrinsic<"promise">[]> {
+  const parent = normaliseName(opts.parentName);
+  const subname = `${opts.label}.${parent}`;
+  const txs: SubmittableExtrinsic<"promise">[] = [await buildIssueSubnameAsOwnerTx(api, opts)];
 
   const node = namehash(parent);
   const prevIndex = parseSubnameIndex(
@@ -220,7 +250,7 @@ export async function issueSubnameAsOwner(
       opts.resolverAbi,
       node,
       SUBNAME_INDEX_RECORD,
-      owner
+      opts.ownerAddress
     )
   );
   if (!prevIndex.some((e) => e.label === opts.label)) {
@@ -230,19 +260,32 @@ export async function issueSubnameAsOwner(
       role: opts.role,
       subname,
     });
-    await persistRegistrarMeta(api, {
-      parentName: parent,
-      registryAddress: opts.registryAddress,
-      registryAbi: opts.registryAbi,
-      resolverAddress: opts.resolverAddress,
-      resolverAbi: opts.resolverAbi,
-      registrarAddress: opts.communityRegistrarAddress,
-      index: prevIndex,
-      signer: opts.signer,
-    });
+    txs.push(
+      buildPersistRegistrarMetaTx(api, {
+        parentName: parent,
+        registryAddress: opts.registryAddress,
+        registryAbi: opts.registryAbi,
+        resolverAddress: opts.resolverAddress,
+        resolverAbi: opts.resolverAbi,
+        registrarAddress: opts.communityRegistrarAddress,
+        index: prevIndex,
+        includeApproval: false,
+      })
+    );
   }
+  return txs;
+}
 
-  return result;
+export async function issueSubnameAsOwner(
+  api: ApiPromise,
+  opts: IssueSubnameAsOwnerOpts
+): Promise<TxResult> {
+  const txs = await planIssueSubnameAsOwner(api, { ...opts, ownerAddress: opts.signer.address });
+  let last: TxResult = { blockHash: "", txHash: "", events: [] };
+  for (const tx of txs) {
+    last = await signAndSend(tx, opts.signer);
+  }
+  return last;
 }
 
 export async function listSubnamesForParent(

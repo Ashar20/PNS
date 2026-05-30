@@ -1,4 +1,5 @@
 import type { ApiPromise } from "@polkadot/api";
+import type { SubmittableExtrinsic } from "@polkadot/api/types";
 import type { KeyringPair } from "@polkadot/keyring/types";
 import type { AttestationRecord, TxResult } from "../types.js";
 import { signAndSend, unwrapOk } from "../utils.js";
@@ -6,6 +7,31 @@ import { ContractPromise } from "@polkadot/api-contract";
 
 export function getAttestationContract(api: ApiPromise, address: string, abi: unknown) {
   return new ContractPromise(api, abi as string, address);
+}
+
+export function buildAttestTx(
+  api: ApiPromise,
+  address: string,
+  abi: unknown,
+  issuerNode: Uint8Array,
+  subjectNode: Uint8Array,
+  schema: string,
+  payload: Uint8Array
+): SubmittableExtrinsic<"promise"> {
+  const contract = getAttestationContract(api, address, abi);
+  return contract.tx.attest(
+    {
+      gasLimit: api.registry.createType("WeightV2", {
+        refTime: 30_000_000_000n,
+        proofSize: 524_288n,
+      }) as unknown as bigint,
+      storageDepositLimit: null,
+    },
+    Array.from(issuerNode),
+    Array.from(subjectNode),
+    schema,
+    Array.from(payload)
+  );
 }
 
 export async function attest(
@@ -18,14 +44,7 @@ export async function attest(
   payload: Uint8Array,
   signer: KeyringPair
 ): Promise<TxResult & { id: bigint }> {
-  const contract = getAttestationContract(api, address, abi);
-  const tx = contract.tx.attest(
-    { gasLimit: (api.registry.createType("WeightV2", { refTime: 30_000_000_000n, proofSize: 524_288n })) as unknown as bigint, storageDepositLimit: null },
-    Array.from(issuerNode),
-    Array.from(subjectNode),
-    schema,
-    Array.from(payload)
-  );
+  const tx = buildAttestTx(api, address, abi, issuerNode, subjectNode, schema, payload);
   const result = await signAndSend(tx, signer);
   // Retrieve the id by querying the subject index — it's the last entry
   const ids = await listBySubject(api, address, abi, subjectNode, schema, signer.address);

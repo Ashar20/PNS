@@ -207,6 +207,7 @@ export class PNSClient {
   }): Promise<TxResult> {
     return issueSubnameAsOwner(this.api, {
       ...opts,
+      ownerAddress: opts.signer.address,
       communityAbi: this.abis.community,
       registryAddress: this.addresses.registry,
       registryAbi: this.abis.registry,

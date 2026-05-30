@@ -8,7 +8,14 @@ import { Avatar } from "./Avatar";
 import { WalletConnect } from "./WalletConnect";
 import { usePNSClient } from "../hooks/usePNSClient";
 import { useWallet } from "../hooks/useWallet";
-import { namehash, normaliseName, recordExists, REGISTRATION_PRICE } from "@pns/sdk";
+import {
+  namehash,
+  normaliseName,
+  recordExists,
+  REGISTRATION_PRICE,
+  buildRegisterNameTx,
+} from "@pns/sdk";
+import { signAndSendTx } from "../lib/signer";
 
 export function NameResultCard({ query }: { query: string }) {
   const { client } = usePNSClient();
@@ -51,35 +58,22 @@ export function NameResultCard({ query }: { query: string }) {
     setStatus("claiming");
     setErrMsg(null);
     try {
-      if (selected.source === "dev" && selected.signer) {
-        const result = await client.registerName(label, selected.address, selected.signer);
-        setTxHash(result.blockHash ?? null);
-        setStatus("done");
-        await queryClient.invalidateQueries({ queryKey: ["availability", query] });
-        setTimeout(() => router.push(`/${query}`), 1500);
-        return;
-      }
-      const { web3FromAddress } = await import("@polkadot/extension-dapp");
-      const injector = await web3FromAddress(selected.address);
-      const { ContractPromise } = await import("@polkadot/api-contract");
       const abis = (client as unknown as { abis: Record<string, unknown> }).abis;
-      const contract = new ContractPromise(client.api, abis.registrar as string, client.addresses.registrar);
-      const gasLimit = client.api.registry.createType("WeightV2", { refTime: 30_000_000_000n, proofSize: 524_288n }) as unknown as bigint;
-      const tx = contract.tx.register(
-        { gasLimit, value: REGISTRATION_PRICE, storageDepositLimit: null },
+      const tx = buildRegisterNameTx(client.api, {
         label,
-        selected.address
-      );
-      await new Promise<void>((resolve, reject) => {
-        tx.signAndSend(selected.address, { signer: injector.signer }, (r) => {
-          if (r.status.isFinalized) {
-            const failed = r.events.some(({ event }) => event.section === "system" && event.method === "ExtrinsicFailed");
-            if (failed) reject(new Error("Extrinsic failed on-chain"));
-            else { setTxHash(r.status.asFinalized.toHex()); queryClient.invalidateQueries({ queryKey: ["availability", query] }); resolve(); }
-          }
-        }).catch(reject);
+        owner: selected.address,
+        registrarAddress: client.addresses.registrar,
+        registrarAbi: abis.registrar,
+        registryAddress: client.addresses.registry,
+        registryAbi: abis.registry,
+        resolverAddress: client.addresses.resolver,
+        registrationPrice: REGISTRATION_PRICE,
+        setIdentityFields: { display: query },
       });
+      const blockHash = await signAndSendTx(tx, selected);
+      setTxHash(blockHash);
       setStatus("done");
+      await queryClient.invalidateQueries({ queryKey: ["availability", query] });
       setTimeout(() => router.push(`/${query}`), 1500);
     } catch (e) {
       setErrMsg(String(e).replace("Error: ", ""));

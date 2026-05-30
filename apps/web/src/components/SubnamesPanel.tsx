@@ -5,7 +5,14 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePNSClient } from "../hooks/usePNSClient";
 import { useWallet } from "../hooks/useWallet";
-import { ROLE_TO_PROXY_TYPE } from "@pns/sdk";
+import {
+  ROLE_TO_PROXY_TYPE,
+  buildApproveCommunityRegistrarTx,
+  buildPersistRegistrarMetaTx,
+  planIssueSubnameAsOwner,
+  isApprovedForAll,
+} from "@pns/sdk";
+import { signAndSendTx } from "../lib/signer";
 
 const ROLES = Object.keys(ROLE_TO_PROXY_TYPE);
 
@@ -37,7 +44,6 @@ export function SubnamesPanel({ parentName, ownerAddress, isOwner }: SubnamesPan
   const { data: registrarApproved, refetch: refetchApproval } = useQuery({
     queryKey: ["registrar-approved", parentName, registrarAddr, ownerAddress],
     queryFn: async () => {
-      const { isApprovedForAll } = await import("@pns/sdk");
       return isApprovedForAll(
         client!.api,
         client!.addresses.registry,
@@ -57,8 +63,8 @@ export function SubnamesPanel({ parentName, ownerAddress, isOwner }: SubnamesPan
   });
 
   const enableSubnames = async () => {
-    if (!client || !selected?.signer || selected.source !== "dev") {
-      setErrMsg("Connect a dev account (//Alice) to enable subnames.");
+    if (!client || !selected || !abis) {
+      setErrMsg("Connect a wallet to enable subnames.");
       setStatus("error");
       return;
     }
@@ -77,7 +83,16 @@ export function SubnamesPanel({ parentName, ownerAddress, isOwner }: SubnamesPan
       if (!res.ok || !json.address) {
         throw new Error(json.error ?? "Deploy failed");
       }
-      await client.saveCommunityRegistrar(parentName, json.address, selected.signer);
+      const tx = buildPersistRegistrarMetaTx(client.api, {
+        parentName,
+        registryAddress: client.addresses.registry,
+        registryAbi: abis.registry,
+        resolverAddress: client.addresses.resolver,
+        resolverAbi: abis.resolver,
+        registrarAddress: json.address,
+        index: [],
+      });
+      await signAndSendTx(tx, selected);
       await refetchRegistrar();
       setStatus("idle");
     } catch (e) {
@@ -87,15 +102,20 @@ export function SubnamesPanel({ parentName, ownerAddress, isOwner }: SubnamesPan
   };
 
   const approveRegistrar = async () => {
-    if (!client || !registrarAddr || !selected?.signer || selected.source !== "dev") {
-      setErrMsg("Connect a dev account to approve the registrar.");
+    if (!client || !registrarAddr || !selected || !abis) {
+      setErrMsg("Connect a wallet to approve the registrar.");
       setStatus("error");
       return;
     }
     setStatus("enabling");
     setErrMsg(null);
     try {
-      await client.approveCommunityRegistrar(parentName, registrarAddr, selected.signer);
+      const tx = buildApproveCommunityRegistrarTx(client.api, {
+        registryAddress: client.addresses.registry,
+        registryAbi: abis.registry,
+        registrarAddress: registrarAddr,
+      });
+      await signAndSendTx(tx, selected);
       await refetchApproval();
       setStatus("idle");
     } catch (e) {
@@ -105,8 +125,8 @@ export function SubnamesPanel({ parentName, ownerAddress, isOwner }: SubnamesPan
   };
 
   const mintSubname = async () => {
-    if (!client || !registrarAddr || !selected?.signer || selected.source !== "dev") {
-      setErrMsg("Connect a dev account to mint subnames.");
+    if (!client || !registrarAddr || !selected || !abis) {
+      setErrMsg("Connect a wallet to mint subnames.");
       setStatus("error");
       return;
     }
@@ -119,17 +139,30 @@ export function SubnamesPanel({ parentName, ownerAddress, isOwner }: SubnamesPan
     setErrMsg(null);
     try {
       if (registrarApproved === false) {
-        await client.approveCommunityRegistrar(parentName, registrarAddr, selected.signer);
+        const approveTx = buildApproveCommunityRegistrarTx(client.api, {
+          registryAddress: client.addresses.registry,
+          registryAbi: abis.registry,
+          registrarAddress: registrarAddr,
+        });
+        await signAndSendTx(approveTx, selected);
         await refetchApproval();
       }
-      await client.issueSubnameAsOwner({
+      const txs = await planIssueSubnameAsOwner(client.api, {
+        registryAddress: client.addresses.registry,
+        registryAbi: abis.registry,
         parentName,
         label: label.trim().toLowerCase(),
         member: memberAddr.trim(),
         role,
         communityRegistrarAddress: registrarAddr,
-        signer: selected.signer,
+        communityAbi: abis.community,
+        resolverAddress: client.addresses.resolver,
+        resolverAbi: abis.resolver,
+        ownerAddress: selected.address,
       });
+      for (const tx of txs) {
+        await signAndSendTx(tx, selected);
+      }
       setLabel("");
       setMemberAddr("");
       setStatus("done");

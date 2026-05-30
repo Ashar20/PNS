@@ -99,6 +99,27 @@ pnpm demo:seed
 pnpm --filter @pns/web dev
 ```
 
+### Mainnet deployment
+
+```bash
+# 1. Funded deployer (never use //Alice on mainnet)
+export DEPLOYER_SEED='your mnemonic or dev URI'
+
+# 2. Build contracts, verify chain, deploy
+pnpm chain:verify -- --mainnet
+pnpm run deploy:mainnet
+
+# 3. Copy addresses from packages/sdk/src/constants/mainnet.ts into apps/web/.env.local
+#    See apps/web/.env.example (NEXT_PUBLIC_WS_ENDPOINT + five contract addresses)
+
+# 4. Server-side community registrar deploy (optional, for Subnames tab)
+#    Set PNS_DEPLOYER_SEED to a funded account on the same chain
+
+pnpm --filter @pns/web build && pnpm --filter @pns/web start
+```
+
+Wallet flows (claim, edit profile, attest, subnames) sign via the Polkadot.js extension or a dev keypair.
+
 ---
 
 ## Pallets used

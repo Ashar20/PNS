@@ -1,23 +1,11 @@
 "use client";
 
-import { PNSClient, LOCAL_WS } from "@pns/sdk";
-// Import addresses from source, not @pns/sdk dist — deploy.ts updates src/constants/local.ts
-// and dist is easy to forget to rebuild (stale addresses cause ContractTrapped).
-import { LOCAL_ADDRESSES } from "../../../../packages/sdk/src/constants/local";
+import { PNSClient } from "@pns/sdk";
+import { chainAddresses, chainWsEndpoint } from "./chain-config";
 
 let _client: PNSClient | null = null;
 let _ready: Promise<PNSClient> | null = null;
 let _wiredRegistry: string | null = null;
-
-function currentAddresses(): typeof LOCAL_ADDRESSES {
-  return {
-    registry: process.env.NEXT_PUBLIC_REGISTRY_ADDRESS ?? LOCAL_ADDRESSES.registry,
-    resolver: process.env.NEXT_PUBLIC_RESOLVER_ADDRESS ?? LOCAL_ADDRESSES.resolver,
-    reverseRegistrar: process.env.NEXT_PUBLIC_REVERSE_ADDRESS ?? LOCAL_ADDRESSES.reverseRegistrar,
-    registrar: process.env.NEXT_PUBLIC_REGISTRAR_ADDRESS ?? LOCAL_ADDRESSES.registrar,
-    attestation: process.env.NEXT_PUBLIC_ATTESTATION_ADDRESS ?? LOCAL_ADDRESSES.attestation,
-  };
-}
 
 /** Drop cached RPC client after `pnpm run deploy:local` updates addresses. */
 export function resetPNSClient(): void {
@@ -38,7 +26,7 @@ async function loadAbis(): Promise<Record<string, unknown>> {
 }
 
 export function getPNSClient(): Promise<PNSClient> {
-  const addresses = currentAddresses();
+  const addresses = chainAddresses();
   if (_wiredRegistry !== addresses.registry) {
     resetPNSClient();
     _wiredRegistry = addresses.registry;
@@ -47,7 +35,7 @@ export function getPNSClient(): Promise<PNSClient> {
   _ready = (async () => {
     if (!_client) {
       _client = new PNSClient({
-        wsEndpoint: process.env.NEXT_PUBLIC_WS_ENDPOINT ?? LOCAL_WS,
+        wsEndpoint: chainWsEndpoint(),
         addresses,
       });
     }

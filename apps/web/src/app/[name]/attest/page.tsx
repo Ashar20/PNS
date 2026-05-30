@@ -6,7 +6,8 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import { usePNSClient } from "../../../hooks/usePNSClient";
 import { useWallet } from "../../../hooks/useWallet";
-import { SCHEMAS } from "@pns/sdk";
+import { SCHEMAS, buildAttestTx, namehash, normaliseName } from "@pns/sdk";
+import { signAndSendTx } from "../../../lib/signer";
 
 const SCHEMA_LIST = Object.values(SCHEMAS);
 
@@ -22,23 +23,23 @@ export default function AttestPage() {
 
   const handleAttest = async () => {
     if (!client || !selected || !issuerName || !payload) return;
-    if (selected.source !== "dev" || !selected.signer) {
-      setErrMsg("Extension wallet signing for attestation not yet wired up. Use a dev account.");
-      setStatus("error");
-      return;
-    }
     setStatus("attesting");
+    setErrMsg("");
     try {
-      await client.attest({
-        issuerName,
-        subjectName: subjectName as string,
+      const abis = (client as unknown as { abis: Record<string, unknown> }).abis;
+      const tx = buildAttestTx(
+        client.api,
+        client.addresses.attestation,
+        abis.attestation,
+        namehash(normaliseName(issuerName)),
+        namehash(normaliseName(subjectName as string)),
         schema,
-        payload: new TextEncoder().encode(payload),
-        signer: selected.signer,
-      });
+        new TextEncoder().encode(payload)
+      );
+      await signAndSendTx(tx, selected);
       setStatus("done");
     } catch (e) {
-      setErrMsg(String(e));
+      setErrMsg(String(e).replace("Error: ", ""));
       setStatus("error");
     }
   };

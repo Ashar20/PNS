@@ -1,4 +1,9 @@
-/* PNS pitch deck — slide content. Pure presentational; rendered by /deck. */
+/* PNS pitch deck — slide content. Pure presentational; rendered by /deck.
+ *
+ * The deck's spine is the four official judging criteria:
+ *   Portaldot Native Deployment · Demo Completion · Application Value · Presentation Quality
+ * Each slide's kicker names the criterion it serves, so the narrative maps 1:1 to the rubric.
+ */
 import type { ReactNode } from "react";
 
 export interface SlideDef {
@@ -26,55 +31,6 @@ function Pill({ children }: { children: ReactNode }) {
 
 function rise(delay: number): { style: React.CSSProperties; className: string } {
   return { className: "deck-rise", style: { animationDelay: `${delay}ms` } };
-}
-
-function FloatingCard({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return (
-    <div
-      className={`rounded-2xl bg-white border border-black/[0.06] shadow-[0_24px_60px_-20px_rgba(0,0,0,0.18)] ${className}`}
-    >
-      {children}
-    </div>
-  );
-}
-
-/* The signature artifact: one batched extrinsic, three native primitives. */
-function BatchAllCard() {
-  const calls = [
-    { tag: "contracts.call", desc: "CommunityRegistrar.issue_subname", note: "name graph" },
-    { tag: "identity.setSubs", desc: "alice.bandit-dao sub-identity", note: "shows in every wallet" },
-    { tag: "proxy.addProxy", desc: "NonTransfer · treasurer role", note: "native RBAC" },
-  ];
-  return (
-    <FloatingCard className="px-6 py-5 w-full max-w-[440px]">
-      <div className="flex items-center justify-between mb-4">
-        <span className="font-mono text-[12px] text-[var(--text-2)]">utility.batchAll</span>
-        <span className="text-[10px] px-2 py-0.5 rounded-full font-mono bg-[var(--pink-tint)] text-[var(--pink-ink)]">
-          asMulti · 2-of-3
-        </span>
-      </div>
-      <div className="space-y-2.5">
-        {calls.map((c, idx) => (
-          <div
-            key={c.tag}
-            className="rounded-xl border border-[var(--border)] bg-[var(--paper)] px-3.5 py-3 flex items-start gap-3 deck-rise"
-            style={{ animationDelay: `${260 + idx * 140}ms` }}
-          >
-            <span className="font-mono text-[11px] text-[var(--accent)] mt-0.5">{String(idx + 1)}</span>
-            <div className="flex-1 min-w-0">
-              <p className="font-mono text-[12px] text-[var(--text)] truncate">{c.tag}</p>
-              <p className="text-[12px] text-[var(--text-2)] truncate">{c.desc}</p>
-            </div>
-            <span className="text-[10px] text-[var(--muted)] shrink-0 mt-1">{c.note}</span>
-          </div>
-        ))}
-      </div>
-      <div className="mt-4 pt-3 border-t border-[var(--border)] flex items-center justify-between text-[12px]">
-        <span className="text-[var(--muted)]">All three, or none.</span>
-        <span className="font-semibold text-[var(--success)]">atomic ✓</span>
-      </div>
-    </FloatingCard>
-  );
 }
 
 /* ── slides ───────────────────────────────────────────────────────────────── */
@@ -105,7 +61,7 @@ export const SLIDES: SlideDef[] = [
         </p>
         <div {...rise(440)} className="mt-10 flex flex-wrap items-center justify-center gap-2">
           <Pill>ink! 5</Pill>
-          <Pill>POT gas</Pill>
+          <Pill>POT as gas</Pill>
           <Pill>deployed on Portaldot</Pill>
           <Pill>open source</Pill>
         </div>
@@ -113,9 +69,9 @@ export const SLIDES: SlideDef[] = [
     ),
   },
 
-  /* 01 — Problem */
+  /* 01 — Problem (Track: a clear identity / coordination problem) */
   {
-    kicker: "The problem",
+    kicker: "Track · the problem",
     render: () => (
       <div className="max-w-3xl">
         <Eyebrow n="01" label="The problem" />
@@ -150,28 +106,28 @@ export const SLIDES: SlideDef[] = [
     ),
   },
 
-  /* 02 — Solution */
+  /* 02 — Solution (Track: a simple, convincing idea) — folds in the ENS-shaped contrast */
   {
-    kicker: "The solution",
+    kicker: "Track · the solution",
     render: () => (
       <div
         className="dot-overlay rounded-[36px] overflow-hidden border border-[var(--border)]"
         style={{ background: "var(--green-bg)" }}
       >
-        <div className="p-10 md:p-16" style={{ color: "var(--green-ink)" }}>
+        <div className="p-10 md:p-14" style={{ color: "var(--green-ink)" }}>
           <p className="font-mono text-[12px] tracking-[0.22em] uppercase opacity-70 mb-6">02 · The solution</p>
-          <h2 className="text-[40px] md:text-[58px] font-semibold leading-[1] tracking-[-0.02em] max-w-3xl">
+          <h2 className="text-[38px] md:text-[54px] font-semibold leading-[1] tracking-[-0.02em] max-w-3xl">
             One name unifies
           </h2>
-          <p className="serif-italic text-[44px] md:text-[64px] leading-[1.04] mt-1">
+          <p className="serif-italic text-[42px] md:text-[60px] leading-[1.04] mt-1">
             identity, roles &amp; reputation.
           </p>
-          <p className="mt-8 text-[17px] md:text-[19px] leading-relaxed font-medium opacity-90 max-w-2xl">
+          <p className="mt-7 text-[17px] md:text-[19px] leading-relaxed font-medium opacity-90 max-w-2xl">
             Every PNS name is a programmable identity bundle. Every <em>parent</em> name is a fully
             functional onchain community — multisig treasury, proxy-based roles, native reputation, and
-            an attestation graph, all bound to a single human-readable name.
+            an attestation graph, all bound to one human-readable name.
           </p>
-          <div className="mt-10 flex flex-wrap gap-2 font-mono text-[13px]">
+          <div className="mt-8 flex flex-wrap gap-2 font-mono text-[13px]">
             {["leo.pot", "bandit-dao.pot", "alice.bandit-dao.pot"].map((n, idx) => (
               <span
                 key={n}
@@ -182,46 +138,158 @@ export const SLIDES: SlideDef[] = [
               </span>
             ))}
           </div>
+          <p className="mt-7 text-[14px] md:text-[15px] opacity-80 max-w-2xl">
+            On Ethereum, ENS needs a dozen third-party contracts — Safe, EAS, NameWrapper — to coordinate
+            around it. <span className="font-semibold">On Portaldot, PNS talks to the chain&apos;s native
+            pallets directly.</span>
+          </p>
         </div>
       </div>
     ),
   },
 
-  /* 03 — The moneyshot */
+  /* 03 — Native pallet composition (Portaldot Native Deployment — mandatory criterion) */
   {
-    kicker: "How it works · the moment",
-    render: () => (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-        <div>
-          <Eyebrow n="03" label="The moment" />
-          <h2 className="text-[36px] md:text-[52px] font-semibold leading-[1.04] tracking-[-0.02em] text-[var(--text)]">
-            One transaction.
-            <br />
-            <span className="serif-italic text-[var(--accent)]">Three native primitives.</span>
-          </h2>
-          <p className="mt-7 text-[17px] text-[var(--text-2)] leading-relaxed max-w-md">
-            Minting a subname fires a single batched extrinsic that writes the name in our Registry
-            contract, sets a Substrate sub-identity on the recipient, and grants a scoped proxy on the
-            community account — composed, atomic, native.
-          </p>
-          <p className="mt-6 text-[14px] text-[var(--muted)]">
-            No chain extensions required. <span className="font-mono text-[var(--text-2)]">utility.batchAll</span>{" "}
-            does the composition the contract can&apos;t.
-          </p>
-        </div>
-        <div className="flex justify-center md:justify-end">
-          <BatchAllCard />
-        </div>
-      </div>
-    ),
-  },
-
-  /* 04 — Product flow */
-  {
-    kicker: "Product flow · five beats",
+    kicker: "Native deployment · mandatory criterion",
     render: () => (
       <div>
-        <Eyebrow n="04" label="The product flow" />
+        <Eyebrow n="03" label="Built on Portaldot · POT as gas · open source" />
+        <h2 className="text-[32px] md:text-[48px] font-semibold leading-[1.04] tracking-[-0.02em] text-[var(--text)] max-w-3xl">
+          We compose with the chain&apos;s <span className="serif-italic text-[var(--accent)]">native pallets</span> —
+          not reimplement them.
+        </h2>
+        <div className="mt-9 grid grid-cols-1 md:grid-cols-5 gap-4">
+          {[
+            { p: "identity", u: "Sub-identities + registrar judgements = verified badges." },
+            { p: "multisig", u: "Community accounts are native multisigs. No Safe contract." },
+            { p: "proxy", u: "Scoped delegations = revocable, native RBAC per role." },
+            { p: "bounties", u: "Treasury bounties become onchain contribution history." },
+            { p: "utility", u: "batchAll makes contract + pallet writes atomic." },
+          ].map((x, idx) => (
+            <div
+              key={x.p}
+              className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 deck-rise"
+              style={{ animationDelay: `${120 + idx * 90}ms` }}
+            >
+              <p className="font-mono text-[14px] text-[var(--accent)]">pallet_{x.p}</p>
+              <p className="mt-3 text-[13px] text-[var(--text-2)] leading-relaxed">{x.u}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-6 items-center">
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--paper)] p-5">
+            <p className="font-mono text-[11px] tracking-[0.18em] uppercase text-[var(--muted)] mb-3">
+              Role → native proxy mapping
+            </p>
+            <div className="flex flex-wrap gap-2 font-mono text-[12px]">
+              {[
+                "admin → Any",
+                "treasurer → NonTransfer",
+                "voter → Governance",
+                "staker → Staking",
+                "judge → IdentityJudgement",
+              ].map((m) => (
+                <span key={m} className="px-3 py-1.5 rounded-full bg-[var(--surface)] border border-[var(--border)] text-[var(--text-2)]">
+                  {m}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="flex md:flex-col gap-2 shrink-0">
+            <Pill>gas = POT</Pill>
+            <Pill>SS58 · 42</Pill>
+            <Pill>contracts open source</Pill>
+          </div>
+        </div>
+      </div>
+    ),
+  },
+
+  /* 04 — Multichain identity · one cryptographic namehash (Application Value) */
+  {
+    kicker: "Application value · the multichain identity",
+    render: () => (
+      <div>
+        <Eyebrow n="04" label="The multichain identity solution" />
+        <h2 className="text-[32px] md:text-[46px] font-semibold leading-[1.04] tracking-[-0.02em] text-[var(--text)] max-w-3xl">
+          One name. One hash. <span className="serif-italic text-[var(--accent)]">Every chain.</span>
+        </h2>
+        <p className="mt-5 text-[16px] md:text-[18px] text-[var(--text-2)] leading-relaxed max-w-2xl">
+          Identity is fragmented across chains because each chain has its own address format. PNS
+          fixes that at the cryptographic layer: a name&apos;s node is a{" "}
+          <span className="font-semibold text-[var(--text)]">deterministic keccak256 namehash</span> —
+          the <em>same 32 bytes</em>, computed identically by anyone, anywhere. One identifier, every
+          ecosystem.
+        </p>
+
+        {/* fragments → one node → many chains */}
+        <div className="mt-10 grid grid-cols-1 md:grid-cols-[auto_1fr] gap-6 items-center">
+          {/* the node */}
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--paper)] p-6 text-center deck-rise" style={{ animationDelay: "120ms" }}>
+            <p className="font-mono text-[12px] text-[var(--muted)]">namehash(&quot;alice.pot&quot;)</p>
+            <p className="mt-2 font-mono text-[18px] md:text-[22px] font-semibold text-[var(--accent)] tracking-tight">
+              0x9f1c…a3e7
+            </p>
+            <p className="mt-2 text-[12px] text-[var(--text-2)]">
+              ENS-compatible · one node, identical everywhere
+            </p>
+          </div>
+
+          {/* what it composes across */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div
+              className="dot-overlay rounded-2xl border border-[var(--border)] p-4 deck-rise"
+              style={{ background: "var(--blue-bg)", color: "var(--blue-ink)", animationDelay: "220ms" }}
+            >
+              <div className="flex items-center justify-between">
+                <p className="text-[14px] font-semibold">Portaldot Wallet</p>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/60">live</span>
+              </div>
+              <p className="mt-1.5 text-[12px] leading-snug opacity-90">
+                Same node = a native sub-identity. The name shows in the wallet with zero integration.
+              </p>
+            </div>
+            <div
+              className="dot-overlay rounded-2xl border border-[var(--border)] p-4 deck-rise"
+              style={{ background: "var(--green-bg)", color: "var(--green-ink)", animationDelay: "320ms" }}
+            >
+              <div className="flex items-center justify-between">
+                <p className="text-[14px] font-semibold">ENS-compatible</p>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/60">interop</span>
+              </div>
+              <p className="mt-1.5 text-[12px] leading-snug opacity-90">
+                Any ENS-style resolver computes the identical 32-byte node. Names interoperate by construction.
+              </p>
+            </div>
+            <div
+              className="dot-overlay rounded-2xl border border-[var(--border)] p-4 deck-rise"
+              style={{ background: "var(--pink-bg)", color: "var(--pink-ink)", animationDelay: "420ms" }}
+            >
+              <div className="flex items-center justify-between">
+                <p className="text-[14px] font-semibold">iBridge</p>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/60">next</span>
+              </div>
+              <p className="mt-1.5 text-[12px] leading-snug opacity-90">
+                Multi-coin records under that one node → bridge to <span className="font-mono">alice.pot</span>, not a 0x per chain.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <p className="mt-8 text-[16px] md:text-[18px] text-[var(--text)] leading-snug max-w-3xl">
+          Identity stops being per-chain — one name resolves across apps, wallets, and chains:{" "}
+          <span className="serif-italic text-[var(--accent)]">a single, composable, multichain identity.</span>
+        </p>
+      </div>
+    ),
+  },
+
+  /* 05 — Product flow (Demo Completion) */
+  {
+    kicker: "Demo · five beats",
+    render: () => (
+      <div>
+        <Eyebrow n="05" label="Demo completion · the product flow" />
         <h2 className="text-[32px] md:text-[46px] font-semibold leading-[1.05] tracking-[-0.02em] text-[var(--text)] max-w-3xl">
           Claim a name → coordinate a community, in five beats.
         </h2>
@@ -253,205 +321,83 @@ export const SLIDES: SlideDef[] = [
     ),
   },
 
-  /* 05 — Native pallet composition */
+  /* 06 — MVP / what's live + architecture (Demo Completion) */
   {
-    kicker: "Portaldot-native deployment",
+    kicker: "Demo · what's live",
     render: () => (
       <div>
-        <Eyebrow n="05" label="Meaningful use of Portaldot" />
-        <h2 className="text-[32px] md:text-[48px] font-semibold leading-[1.04] tracking-[-0.02em] text-[var(--text)] max-w-3xl">
-          We compose with the chain&apos;s <span className="serif-italic text-[var(--accent)]">native pallets</span> —
-          not reimplement them.
-        </h2>
-        <div className="mt-10 grid grid-cols-1 md:grid-cols-5 gap-4">
-          {[
-            { p: "identity", u: "Sub-identities + registrar judgements = verified badges." },
-            { p: "multisig", u: "Community accounts are native multisigs. No Safe contract." },
-            { p: "proxy", u: "Scoped delegations = revocable, native RBAC per role." },
-            { p: "bounties", u: "Treasury bounties become onchain contribution history." },
-            { p: "utility", u: "batchAll makes contract + pallet writes atomic." },
-          ].map((x, idx) => (
-            <div
-              key={x.p}
-              className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 deck-rise"
-              style={{ animationDelay: `${120 + idx * 90}ms` }}
-            >
-              <p className="font-mono text-[14px] text-[var(--accent)]">pallet_{x.p}</p>
-              <p className="mt-3 text-[13px] text-[var(--text-2)] leading-relaxed">{x.u}</p>
-            </div>
-          ))}
-        </div>
-        <div className="mt-10 rounded-2xl border border-[var(--border)] bg-[var(--paper)] p-6">
-          <p className="font-mono text-[11px] tracking-[0.18em] uppercase text-[var(--muted)] mb-3">
-            Role → proxy mapping
-          </p>
-          <div className="flex flex-wrap gap-2 font-mono text-[12px]">
-            {[
-              "admin → Any",
-              "treasurer → NonTransfer",
-              "voter → Governance",
-              "staker → Staking",
-              "judge → IdentityJudgement",
-            ].map((m) => (
-              <span key={m} className="px-3 py-1.5 rounded-full bg-[var(--surface)] border border-[var(--border)] text-[var(--text-2)]">
-                {m}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-    ),
-  },
-
-  /* 06 — ENS comparison */
-  {
-    kicker: "Why Portaldot",
-    render: () => (
-      <div className="max-w-4xl">
-        <Eyebrow n="06" label="ENS-shaped, Substrate-powered" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-7 deck-rise" style={{ animationDelay: "120ms" }}>
-            <p className="font-mono text-[12px] tracking-[0.18em] uppercase text-[var(--muted)]">On Ethereum</p>
-            <p className="mt-4 text-[20px] text-[var(--text-2)] leading-relaxed">
-              ENS is one contract suite <span className="font-semibold text-[var(--text)]">plus a dozen
-              third-party contracts</span> — Safe, EAS, custom RBAC — to coordinate around it.
-            </p>
-          </div>
-          <div
-            className="dot-overlay rounded-2xl border border-[var(--border)] p-7 deck-rise"
-            style={{ background: "var(--blue-bg)", color: "var(--blue-ink)", animationDelay: "240ms" }}
-          >
-            <p className="font-mono text-[12px] tracking-[0.18em] uppercase opacity-70">On Portaldot</p>
-            <p className="mt-4 text-[20px] leading-relaxed font-medium">
-              PNS is one contract suite that <span className="font-semibold">talks to the chain&apos;s native
-              coordination pallets directly.</span>
-            </p>
-          </div>
-        </div>
-        <p className="mt-10 text-[18px] md:text-[22px] text-[var(--text)] leading-snug max-w-3xl">
-          The primitives ENS needs an ecosystem to fake,{" "}
-          <span className="serif-italic text-[var(--accent)]">Portaldot ships in the runtime.</span>
-        </p>
-      </div>
-    ),
-  },
-
-  /* 07 — MVP / what's live */
-  {
-    kicker: "Runnable MVP · onchain value",
-    render: () => (
-      <div>
-        <Eyebrow n="07" label="A runnable MVP with real onchain value" />
-        <h2 className="text-[32px] md:text-[46px] font-semibold leading-[1.04] tracking-[-0.02em] text-[var(--text)] max-w-3xl">
+        <Eyebrow n="06" label="A runnable MVP with real onchain value" />
+        <h2 className="text-[30px] md:text-[44px] font-semibold leading-[1.04] tracking-[-0.02em] text-[var(--text)] max-w-3xl">
           Live, demo-ready, and paying gas in <span className="font-mono text-[var(--accent)]">POT</span>.
         </h2>
-        <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { big: "6", small: "ink! 5 contracts", sub: "Registry · Resolver · Reverse · Registrar · Community · Attestation" },
-            { big: "5", small: "native pallets composed", sub: "identity · multisig · proxy · bounties · utility" },
-            { big: "1 tx", small: "subname issuance", sub: "batchAll: name + sub-identity + proxy, atomic" },
-            { big: "POT", small: "native gas token", sub: "14 decimals · SS58 prefix 42 · mainnet-verified" },
-          ].map((x, idx) => (
-            <div
-              key={x.small}
-              className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 deck-rise"
-              style={{ animationDelay: `${120 + idx * 100}ms` }}
-            >
-              <p className="text-[40px] font-semibold tracking-tight text-[var(--accent)] leading-none">{x.big}</p>
-              <p className="mt-3 text-[14px] font-semibold text-[var(--text)]">{x.small}</p>
-              <p className="mt-1.5 text-[11px] text-[var(--muted)] font-mono leading-relaxed">{x.sub}</p>
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-[1.1fr_0.9fr] gap-6 items-stretch">
+          {/* stats */}
+          <div className="grid grid-cols-2 gap-4">
+            {[
+              { big: "6", small: "ink! 5 contracts", sub: "Registry · Resolver · Reverse · Registrar · Community · Attestation" },
+              { big: "5", small: "native pallets composed", sub: "identity · multisig · proxy · bounties · utility" },
+              { big: "1 tx", small: "subname issuance", sub: "batchAll: name + sub-identity + proxy, atomic" },
+              { big: "POT", small: "native gas token", sub: "14 decimals · SS58 prefix 42 · mainnet-verified" },
+            ].map((x, idx) => (
+              <div
+                key={x.small}
+                className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 deck-rise"
+                style={{ animationDelay: `${120 + idx * 90}ms` }}
+              >
+                <p className="text-[34px] font-semibold tracking-tight text-[var(--accent)] leading-none">{x.big}</p>
+                <p className="mt-2.5 text-[13px] font-semibold text-[var(--text)]">{x.small}</p>
+                <p className="mt-1 text-[11px] text-[var(--muted)] font-mono leading-relaxed">{x.sub}</p>
+              </div>
+            ))}
+          </div>
+          {/* architecture, compact */}
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--paper)] p-5">
+            <p className="font-mono text-[11px] tracking-[0.16em] uppercase text-[var(--muted)] mb-3">
+              How it&apos;s wired
+            </p>
+            <div className="space-y-2 font-mono text-[12px] text-[var(--text-2)]">
+              <div className="px-3 py-2 rounded-lg bg-[var(--surface)] border border-[var(--border)]">
+                ink! contracts — the name graph (who owns what)
+              </div>
+              <div className="text-center text-[var(--accent)] text-[13px]">
+                ⇅ utility.batchAll · @pns/sdk
+              </div>
+              <div className="px-3 py-2 rounded-lg bg-[var(--surface)] border border-[var(--border)]">
+                native pallets — account state (ids, proxies, bounties)
+              </div>
             </div>
-          ))}
-        </div>
-        <div className="mt-8 flex flex-wrap gap-2">
-          {[
-            "Next.js + @polkadot/api frontend",
-            "@pns/sdk TypeScript SDK",
-            "real subnames issued",
-            "scoped proxies granted",
-            "judgements + attestations",
-          ].map((t) => (
-            <Pill key={t}>{t}</Pill>
-          ))}
+            <div className="mt-4 flex flex-wrap gap-2">
+              {["Next.js + polkadot.js", "@pns/sdk", "in-app /docs"].map((t) => (
+                <span key={t} className="text-[11px] font-mono px-2.5 py-1 rounded-full bg-[var(--surface)] border border-[var(--border)] text-[var(--muted)]">
+                  {t}
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     ),
   },
 
-  /* 08 — Architecture */
+  /* 07 — Application value + roadmap (Application Value: market potential) */
   {
-    kicker: "Architecture",
-    render: () => (
-      <div>
-        <Eyebrow n="08" label="How it's wired" />
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-6 items-center">
-          <FloatingCard className="p-6">
-            <p className="font-mono text-[12px] tracking-[0.18em] uppercase text-[var(--muted)] mb-4">
-              ink! contracts — the name graph
-            </p>
-            <div className="space-y-2 font-mono text-[13px] text-[var(--text-2)]">
-              {["Registry", "PublicResolver", "ReverseRegistrar", "Registrar (.pot)", "CommunityRegistrar", "Attestation"].map((c) => (
-                <div key={c} className="px-3 py-2 rounded-lg bg-[var(--paper)] border border-[var(--border)]">
-                  {c}
-                </div>
-              ))}
-            </div>
-          </FloatingCard>
-
-          <div className="flex flex-col items-center justify-center text-center py-4">
-            <span className="font-mono text-[12px] text-[var(--accent)] rotate-0 md:rotate-0">
-              utility.batchAll
-            </span>
-            <span className="text-[var(--muted)] text-[24px] my-1">⇄</span>
-            <span className="font-mono text-[11px] text-[var(--muted)] max-w-[120px]">
-              atomic composition via the SDK
-            </span>
-          </div>
-
-          <div
-            className="dot-overlay rounded-2xl border border-[var(--border)] p-6"
-            style={{ background: "var(--blue-bg)", color: "var(--blue-ink)" }}
-          >
-            <p className="font-mono text-[12px] tracking-[0.18em] uppercase opacity-70 mb-4">
-              native pallets — account state
-            </p>
-            <div className="space-y-2 font-mono text-[13px]">
-              {["identity — sub-ids, judgements", "multisig — community accounts", "proxy — scoped RBAC", "bounties — contributions", "utility — batching"].map((c) => (
-                <div key={c} className="px-3 py-2 rounded-lg bg-white/55">
-                  {c}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-        <p className="mt-8 text-[14px] text-[var(--muted)] max-w-2xl">
-          Contracts own <span className="text-[var(--text-2)]">who owns what</span>. Pallets own{" "}
-          <span className="text-[var(--text-2)]">account state</span>. The SDK composes both into one
-          signed extrinsic — each side enforces its own invariants.
-        </p>
-      </div>
-    ),
-  },
-
-  /* 09 — Application value */
-  {
-    kicker: "Application value",
+    kicker: "Application value · market & roadmap",
     render: () => (
       <div className="max-w-3xl">
-        <Eyebrow n="09" label="Market potential" />
-        <h2 className="text-[34px] md:text-[50px] font-semibold leading-[1.04] tracking-[-0.02em] text-[var(--text)]">
+        <Eyebrow n="07" label="Market potential" />
+        <h2 className="text-[32px] md:text-[48px] font-semibold leading-[1.04] tracking-[-0.02em] text-[var(--text)]">
           Naming is the <span className="serif-italic text-[var(--accent)]">first thing</span> every chain needs.
         </h2>
-        <div className="mt-10 space-y-4">
+        <div className="mt-8 space-y-3">
           {[
-            { t: "For people", d: "A portable .pot identity that works in every Substrate wallet on day one — no integration needed." },
-            { t: "For communities", d: "Spin up a DAO with treasury, roles, reputation, and contribution tracking from a single name. Onboarding a member is one transaction." },
-            { t: "For the ecosystem", d: "PNS becomes the identity & coordination layer other Portaldot dapps resolve against — the network effect ENS proved on Ethereum." },
+            { t: "For people", d: "A portable .pot identity that works in every Substrate wallet — including Portaldot Wallet — on day one." },
+            { t: "For communities", d: "Treasury, roles, reputation, and contribution tracking from one name. Onboarding a member is a single transaction." },
+            { t: "For the ecosystem", d: "The resolution layer the Portaldot Wallet and iBridge plug into — the network effect ENS proved on Ethereum." },
           ].map((x, idx) => (
             <div
               key={x.t}
               className="flex gap-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 deck-rise"
-              style={{ animationDelay: `${140 + idx * 120}ms` }}
+              style={{ animationDelay: `${140 + idx * 110}ms` }}
             >
               <span className="font-mono text-[12px] text-[var(--accent)] uppercase tracking-[0.14em] w-32 shrink-0 pt-1">
                 {x.t}
@@ -460,46 +406,76 @@ export const SLIDES: SlideDef[] = [
             </div>
           ))}
         </div>
-      </div>
-    ),
-  },
-
-  /* 10 — Roadmap / honest limitations */
-  {
-    kicker: "Roadmap",
-    render: () => (
-      <div className="max-w-3xl">
-        <Eyebrow n="10" label="Honest scope · what's next" />
-        <h2 className="text-[32px] md:text-[46px] font-semibold leading-[1.04] tracking-[-0.02em] text-[var(--text)]">
-          Cut for the hackathon — <span className="serif-italic text-[var(--accent)]">on the roadmap.</span>
-        </h2>
-        <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <p className="mt-7 font-mono text-[11px] tracking-[0.16em] uppercase text-[var(--muted)] mb-2">Roadmap</p>
+        <div className="flex flex-wrap gap-2">
           {[
-            "Commit/reveal registrar + auctions",
-            "NameWrapper-style fuses & permissions",
-            "Multi-coin / cross-chain address records",
-            "ZKP-based selective disclosure",
-            "Liquid-democracy delegation UI",
-            "Curated registrar marketplace",
-          ].map((x, idx) => (
-            <div
-              key={x}
-              className="rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3.5 text-[14px] text-[var(--text-2)] deck-rise"
-              style={{ animationDelay: `${100 + idx * 70}ms` }}
-            >
+            "multi-coin records → iBridge",
+            "commit/reveal registrar",
+            "NameWrapper-style fuses",
+            "ZK selective disclosure",
+          ].map((x) => (
+            <span key={x} className="text-[12px] font-mono px-3 py-1.5 rounded-full bg-[var(--surface)] border border-[var(--border)] text-[var(--text-2)]">
               {x}
-            </div>
+            </span>
           ))}
         </div>
-        <p className="mt-8 text-[14px] text-[var(--muted)]">
-          We deliberately built on standard Substrate pallets only — nothing that depends on
-          marketing-tier chain features.
-        </p>
       </div>
     ),
   },
 
-  /* 11 — Close */
+  /* 08 — Judging scorecard (Presentation Quality: key points clearly highlighted) */
+  {
+    kicker: "Presentation · the rubric, answered",
+    render: () => (
+      <div>
+        <Eyebrow n="08" label="How PNS scores against every criterion" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[
+            {
+              t: "Portaldot Native Deployment",
+              tag: "mandatory",
+              tone: "blue",
+              d: "Deployed on Portaldot, gas paid in POT. Composes 5 native pallets via batchAll — not portable to any other chain.",
+            },
+            {
+              t: "Demo Completion",
+              tag: "MVP",
+              tone: "green",
+              d: "Runnable today: 6 contracts, a TypeScript SDK, and a full app. Five-beat flow a reviewer can reproduce live.",
+            },
+            {
+              t: "Application Value",
+              tag: "market",
+              tone: "pink",
+              d: "A composable, cryptographically-portable identity — the layer the Portaldot Wallet and iBridge plug into.",
+            },
+            {
+              t: "Presentation Quality",
+              tag: "clarity",
+              tone: "blue",
+              d: "ENS-shaped surface every reviewer recognises; one idea — fragmented identity, unified under one name.",
+            },
+          ].map((x) => {
+            const bg =
+              x.tone === "green" ? "var(--green-tint)" : x.tone === "pink" ? "var(--pink-tint)" : "var(--blue-bg)";
+            const ink =
+              x.tone === "green" ? "var(--green-ink)" : x.tone === "pink" ? "var(--pink-ink)" : "var(--blue-ink)";
+            return (
+              <div key={x.t} className="dot-overlay rounded-2xl border border-[var(--border)] p-5" style={{ background: bg, color: ink }}>
+                <div className="flex items-center justify-between">
+                  <p className="text-[17px] font-semibold">{x.t}</p>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/55">{x.tag}</span>
+                </div>
+                <p className="mt-2.5 text-[13px] leading-relaxed opacity-90">{x.d}</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    ),
+  },
+
+  /* 09 — Close */
   {
     kicker: "Thank you",
     render: () => (
@@ -522,7 +498,12 @@ export const SLIDES: SlideDef[] = [
           >
             Try the live MVP
           </a>
-          <span className="font-mono text-[13px] text-[var(--muted)]">github.com/Ashar20/PNS</span>
+          <a
+            href="/docs"
+            className="border border-[var(--border-strong)] text-[var(--text-2)] px-7 py-3.5 rounded-full text-[15px] font-medium hover:bg-[var(--surface)] transition-colors"
+          >
+            Read the SDK docs
+          </a>
         </div>
         <p {...rise(480)} className="mt-12 serif-italic text-[22px] text-[var(--text-2)]">
           A name is a community.

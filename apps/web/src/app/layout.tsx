@@ -52,6 +52,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </div>
               <HeaderSearch />
               <div className="flex-1" />
+              <nav className="hidden md:flex items-center gap-5 mr-1 text-[14px] text-[var(--text-2)]">
+                <Link href="/docs" className="hover:text-[var(--text)] transition-colors">Docs</Link>
+                <Link href="/deck" className="hover:text-[var(--text)] transition-colors">Deck</Link>
+              </nav>
               <WalletConnect />
             </div>
           </header>
@@ -66,8 +70,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/communities" className="hover:text-[var(--text)]">Communities</Link>
               <Link href="/wallet" className="hover:text-[var(--text)]">Wallet</Link>
               <Link href="/my-names" className="hover:text-[var(--text)]">Profile</Link>
-              <Link href="/docs" className="hover:text-[var(--text)]">Docs</Link>
-              <Link href="/deck" className="hover:text-[var(--text)]">Deck</Link>
               <span>·</span>
               <span>portaldot · ink! 5</span>
             </div>

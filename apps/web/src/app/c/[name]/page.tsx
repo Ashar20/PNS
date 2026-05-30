@@ -23,32 +23,32 @@ export default function CommunityPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-neutral-100">{name}.pot</h2>
-          <p className="text-neutral-500 text-sm mt-1">Community</p>
+          <h2 className="text-3xl font-bold text-[var(--text)]">{name}.pot</h2>
+          <p className="text-[var(--muted)] text-sm mt-1">Community</p>
         </div>
         <Link
           href={`/c/${name}/invite`}
-          className="px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium rounded-xl transition-colors"
+          className="px-4 py-2 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-sm font-medium rounded-xl transition-colors"
         >
           Invite Member
         </Link>
       </div>
 
       <section>
-        <h3 className="text-sm uppercase tracking-wider text-neutral-500 mb-3">Members</h3>
-        {isLoading && <p className="text-neutral-500 text-sm">Loading…</p>}
+        <h3 className="text-sm uppercase tracking-wider text-[var(--muted)] mb-3">Members</h3>
+        {isLoading && <p className="text-[var(--muted)] text-sm">Loading…</p>}
         {!isLoading && (!members || members.length === 0) && (
-          <p className="text-neutral-600 text-sm">No members yet.</p>
+          <p className="text-[var(--muted)] text-sm">No members yet.</p>
         )}
         <div className="space-y-2">
           {members?.map((m) => (
             <div
               key={m.account}
-              className="flex items-center justify-between bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3"
+              className="flex items-center justify-between bg-[var(--surface)] border border-[var(--border)] rounded-xl px-4 py-3"
             >
               <div>
-                <p className="text-sm font-medium text-neutral-200">{m.subname}</p>
-                <p className="text-xs font-mono text-neutral-500 mt-0.5">
+                <p className="text-sm font-medium text-[var(--text)]">{m.subname}</p>
+                <p className="text-xs font-mono text-[var(--muted)] mt-0.5">
                   {m.account.slice(0, 12)}…
                 </p>
               </div>
@@ -59,8 +59,8 @@ export default function CommunityPage() {
       </section>
 
       <section>
-        <h3 className="text-sm uppercase tracking-wider text-neutral-500 mb-3">Bounties</h3>
-        <p className="text-neutral-600 text-sm">
+        <h3 className="text-sm uppercase tracking-wider text-[var(--muted)] mb-3">Bounties</h3>
+        <p className="text-[var(--muted)] text-sm">
           Active bounties appear here. Post a bounty via the treasury to reward contributions.
         </p>
       </section>

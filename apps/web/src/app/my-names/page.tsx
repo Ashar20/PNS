@@ -28,18 +28,18 @@ function NameRow({ name, ownerAddress }: { name: string; ownerAddress: string })
   const isOwned = owner && owner.toLowerCase() === ownerAddress.toLowerCase();
 
   return (
-    <div className="bg-neutral-900 border border-neutral-800 rounded-2xl px-5 py-4 flex items-center justify-between">
+    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl px-5 py-4 flex items-center justify-between">
       <div>
-        <p className="font-semibold text-neutral-100">{name}</p>
+        <p className="font-semibold text-[var(--text)]">{name}</p>
         {isOwned !== undefined && (
-          <p className={`text-xs mt-0.5 ${isOwned ? "text-green-400" : "text-red-400"}`}>
+          <p className={`text-xs mt-0.5 ${isOwned ? "text-[var(--success)]" : "text-[var(--error)]"}`}>
             {isOwned ? "You own this" : "Not owned by you"}
           </p>
         )}
       </div>
       <Link
         href={`/${name}`}
-        className="px-4 py-2 bg-neutral-700 hover:bg-neutral-600 text-neutral-200 text-sm font-medium rounded-xl transition-colors"
+        className="px-4 py-2 bg-[var(--paper)] hover:bg-[var(--paper)] text-[var(--text)] text-sm font-medium rounded-xl transition-colors"
       >
         View Profile
       </Link>
@@ -71,7 +71,7 @@ function LookupForm({ ownerAddress }: { ownerAddress: string }) {
 
   return (
     <div className="space-y-3">
-      <h3 className="text-lg font-semibold text-neutral-200">Look up a name</h3>
+      <h3 className="text-lg font-semibold text-[var(--text)]">Look up a name</h3>
       <div className="flex gap-2">
         <input
           type="text"
@@ -79,41 +79,41 @@ function LookupForm({ ownerAddress }: { ownerAddress: string }) {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && setQuery(input.trim())}
           placeholder="alice or alice.pot"
-          className="flex-1 bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-neutral-100 placeholder-neutral-500 focus:outline-none focus:border-violet-500"
+          className="flex-1 bg-[var(--surface)] border border-[var(--border)] rounded-xl px-4 py-2.5 text-sm text-[var(--text)] placeholder-neutral-500 focus:outline-none focus:border-[var(--accent)]"
         />
         <button
           onClick={() => setQuery(input.trim())}
-          className="px-5 py-2.5 bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium rounded-xl transition-colors"
+          className="px-5 py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-sm font-medium rounded-xl transition-colors"
         >
           Check
         </button>
       </div>
 
-      {isLoading && <p className="text-sm text-neutral-500">Checking…</p>}
+      {isLoading && <p className="text-sm text-[var(--muted)]">Checking…</p>}
 
       {exists && !isLoading && (
-        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl px-5 py-4 flex items-center justify-between">
+        <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl px-5 py-4 flex items-center justify-between">
           <div>
-            <p className="font-semibold text-neutral-100">{exists.name}</p>
+            <p className="font-semibold text-[var(--text)]">{exists.name}</p>
             {!exists.found ? (
-              <p className="text-xs mt-0.5 text-neutral-400">Not registered</p>
+              <p className="text-xs mt-0.5 text-[var(--muted)]">Not registered</p>
             ) : exists.isYours ? (
-              <p className="text-xs mt-0.5 text-green-400">You own this</p>
+              <p className="text-xs mt-0.5 text-[var(--success)]">You own this</p>
             ) : (
-              <p className="text-xs mt-0.5 text-neutral-400">Registered (not yours)</p>
+              <p className="text-xs mt-0.5 text-[var(--muted)]">Registered (not yours)</p>
             )}
           </div>
           {exists.found ? (
             <Link
               href={`/${exists.name}`}
-              className="px-4 py-2 bg-neutral-700 hover:bg-neutral-600 text-neutral-200 text-sm font-medium rounded-xl transition-colors"
+              className="px-4 py-2 bg-[var(--paper)] hover:bg-[var(--paper)] text-[var(--text)] text-sm font-medium rounded-xl transition-colors"
             >
               View Profile
             </Link>
           ) : (
             <Link
-              href={`/claim/${exists.name.replace(/\.pot$/, "")}`}
-              className="px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium rounded-xl transition-colors"
+              href={`/search?q=${encodeURIComponent(exists.name)}`}
+              className="px-4 py-2 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-sm font-medium rounded-xl transition-colors"
             >
               Claim
             </Link>
@@ -139,15 +139,15 @@ function MyNamesInner({ address }: { address: string }) {
   return (
     <div className="space-y-8">
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-neutral-200">Primary name</h3>
+        <h3 className="text-lg font-semibold text-[var(--text)]">Primary name</h3>
         {loadingPrimary ? (
-          <p className="text-sm text-neutral-500">Looking up primary name…</p>
+          <p className="text-sm text-[var(--muted)]">Looking up primary name…</p>
         ) : primaryName ? (
           <NameRow name={primaryName} ownerAddress={address} />
         ) : (
-          <p className="text-sm text-neutral-400">
+          <p className="text-sm text-[var(--muted)]">
             No primary name set.{" "}
-            <Link href="/search" className="text-violet-400 hover:text-violet-300 underline">
+            <Link href="/search" className="text-[var(--accent)] hover:text-[var(--accent)] underline">
               Claim a name
             </Link>{" "}
             to get started.
@@ -155,7 +155,7 @@ function MyNamesInner({ address }: { address: string }) {
         )}
       </div>
 
-      <hr className="border-neutral-800" />
+      <hr className="border-[var(--border)]" />
 
       <LookupForm ownerAddress={address} />
     </div>
@@ -167,20 +167,20 @@ export default function MyNamesPage() {
 
   return (
     <div className="max-w-xl mx-auto space-y-6">
-      <h2 className="text-2xl font-bold text-neutral-100">My Names</h2>
+      <h2 className="text-2xl font-bold text-[var(--text)]">My Names</h2>
 
       {!selected ? (
         <div className="space-y-4">
-          <p className="text-sm text-neutral-400">Connect your wallet to see your names.</p>
+          <p className="text-sm text-[var(--muted)]">Connect your wallet to see your names.</p>
           <WalletConnect />
         </div>
       ) : (
         <>
-          <p className="text-sm text-neutral-500 font-mono">
-            {selected.name && <span className="text-neutral-300">{selected.name} · </span>}
+          <p className="text-sm text-[var(--muted)] font-mono">
+            {selected.name && <span className="text-[var(--text-2)]">{selected.name} · </span>}
             {selected.address}
             {selected.source === "dev" && (
-              <span className="ml-2 text-xs text-violet-400">(dev)</span>
+              <span className="ml-2 text-xs text-[var(--accent)]">(dev)</span>
             )}
           </p>
           <MyNamesInner address={selected.address} />

@@ -1,9 +1,9 @@
 # Chain Verification Report
 
-**Date:** 2026-05-25T10:18:04.456Z
-**Endpoint:** ws://127.0.0.1:9944
-**Chain:** Development
-**Node version:** 0.42.0-f209befc88c
+**Date:** 2026-05-30T08:22:01.272Z
+**Endpoint:** wss://mainnet.portaldot.io
+**Chain:** Portaldot Mainnet
+**Node version:** 2.0.0-unknown-x86_64-linux-gnu
 
 ---
 
@@ -17,19 +17,23 @@
 
 ### 3. identity.setIdentity meta
 
-`NOT AVAILABLE`
+`[object Object]`
 
 ### 4. proxy.addProxy meta
 
-`NOT AVAILABLE`
+`[object Object]`
 
-### 5. multisig constants
+### 5a. multisig.depositBase
 
-`NOT AVAILABLE`
+`543000000000000`
+
+### 5b. multisig.depositFactor
+
+`192000000000000`
 
 ### 6a. bounties.bountyDepositBase
 
-`n/a`
+`100000000000000`
 
 ### 6b. bounties.curatorDepositMin
 
@@ -37,7 +41,7 @@
 
 ### 7. balances.existentialDeposit
 
-`1000000000`
+`100000000000000`
 
 ### 8. SS58 prefix
 

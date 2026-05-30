@@ -14,7 +14,7 @@
 
 import { ApiPromise, WsProvider, Keyring } from "@polkadot/api";
 import { CodePromise, ContractPromise } from "@polkadot/api-contract";
-import { readFileSync, writeFileSync, mkdirSync } from "fs";
+import { readFileSync, writeFileSync, mkdirSync, cpSync, execSync } from "fs";
 import { join } from "path";
 import { namehash, labelHash } from "../packages/sdk/src/namehash.js";
 
@@ -162,6 +162,20 @@ async function main() {
   );
   console.log(`\nAddresses written to ${outPath}`);
   console.log(JSON.stringify(addresses, null, 2));
+
+  // Sync ABIs + compiled SDK so Next.js and vitest see the same addresses as src.
+  const contractNames = ["registry", "resolver", "reverse", "registrar", "community", "attestation"];
+  for (const name of contractNames) {
+    const src = join("contracts", name, "target", "ink", `${name}.json`);
+    const dest = join("apps", "web", "public", "abis", `${name}.json`);
+    try {
+      cpSync(src, dest);
+    } catch {
+      console.warn(`  (skip ABI copy: ${src} not found — build contracts first)`);
+    }
+  }
+  console.log("\nRebuilding @pns/sdk dist…");
+  execSync("pnpm --filter @pns/sdk build", { stdio: "inherit", cwd: join(process.cwd()) });
 
   await api.disconnect();
 }

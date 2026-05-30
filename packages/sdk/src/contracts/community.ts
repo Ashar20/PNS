@@ -66,7 +66,7 @@ export function buildIssueSubnameTx(
 ): SubmittableExtrinsic<"promise"> {
   const contract = getCommunityContract(api, address, abi);
   return contract.tx.issueSubname(
-    { gasLimit: (api.registry.createType("WeightV2", { refTime: 30_000_000_000n, proofSize: 131_072n })) as unknown as bigint, storageDepositLimit: null },
+    { gasLimit: (api.registry.createType("WeightV2", { refTime: 30_000_000_000n, proofSize: 524_288n })) as unknown as bigint, storageDepositLimit: null },
     label,
     member,
     role
@@ -81,7 +81,7 @@ export function buildRevokeSubnameTx(
 ): SubmittableExtrinsic<"promise"> {
   const contract = getCommunityContract(api, address, abi);
   return contract.tx.revokeSubname(
-    { gasLimit: (api.registry.createType("WeightV2", { refTime: 30_000_000_000n, proofSize: 131_072n })) as unknown as bigint, storageDepositLimit: null },
+    { gasLimit: (api.registry.createType("WeightV2", { refTime: 30_000_000_000n, proofSize: 524_288n })) as unknown as bigint, storageDepositLimit: null },
     label
   );
 }

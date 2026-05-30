@@ -126,32 +126,32 @@ function SendPanel({ onSent }: { onSent: (entry: HistoryEntry) => void }) {
   const canSend = !!resolved?.address && !!amount && status !== "sending" && !!selected?.signer;
 
   return (
-    <div className="bg-neutral-900 border border-neutral-800 rounded-2xl px-6 py-5 space-y-4">
-      <h3 className="font-semibold text-neutral-100">Send POT</h3>
+    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl px-6 py-5 space-y-4">
+      <h3 className="font-semibold text-[var(--text)]">Send POT</h3>
 
       <div className="space-y-1">
-        <label className="text-xs text-neutral-500">To (.pot name or address)</label>
+        <label className="text-xs text-[var(--muted)]">To (.pot name or address)</label>
         <input
           value={to}
           onChange={(e) => { setTo(e.target.value); setStatus("idle"); setErr(null); }}
           placeholder="bob.pot or 5FHneW…"
-          className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-neutral-100 placeholder:text-neutral-600 outline-none focus:border-violet-500 font-mono"
+          className="w-full bg-[var(--paper)] border border-[var(--border)] rounded-xl px-4 py-2.5 text-sm text-[var(--text)] placeholder:text-[var(--muted)] outline-none focus:border-[var(--accent)] font-mono"
         />
         {to.trim() && (
           <div className="text-xs mt-1">
-            {isFetching && <span className="text-neutral-500">Resolving…</span>}
+            {isFetching && <span className="text-[var(--muted)]">Resolving…</span>}
             {!isFetching && resolved?.address && (
-              <span className="text-green-400">→ {resolved.address.slice(0, 16)}…{resolved.address.slice(-6)}</span>
+              <span className="text-[var(--success)]">→ {resolved.address.slice(0, 16)}…{resolved.address.slice(-6)}</span>
             )}
             {!isFetching && resolved && !resolved.address && (
-              <span className="text-red-400">Name not found or not registered</span>
+              <span className="text-[var(--error)]">Name not found or not registered</span>
             )}
           </div>
         )}
       </div>
 
       <div className="space-y-1">
-        <label className="text-xs text-neutral-500">Amount (POT)</label>
+        <label className="text-xs text-[var(--muted)]">Amount (POT)</label>
         <input
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
@@ -159,33 +159,33 @@ function SendPanel({ onSent }: { onSent: (entry: HistoryEntry) => void }) {
           type="number"
           min="0"
           step="0.01"
-          className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-2.5 text-sm text-neutral-100 placeholder:text-neutral-600 outline-none focus:border-violet-500"
+          className="w-full bg-[var(--paper)] border border-[var(--border)] rounded-xl px-4 py-2.5 text-sm text-[var(--text)] placeholder:text-[var(--muted)] outline-none focus:border-[var(--accent)]"
         />
       </div>
 
       {resolved?.address && amount && (
-        <div className="bg-neutral-800 rounded-xl px-4 py-3 text-sm space-y-1">
+        <div className="bg-[var(--paper)] rounded-xl px-4 py-3 text-sm space-y-1">
           <div className="flex justify-between">
-            <span className="text-neutral-500">To</span>
-            <span className="text-neutral-200 font-mono text-xs">{resolved.name ? <><span className="text-violet-400">{resolved.name}</span> ({resolved.address.slice(0, 10)}…)</> : resolved.address.slice(0, 16) + "…"}</span>
+            <span className="text-[var(--muted)]">To</span>
+            <span className="text-[var(--text)] font-mono text-xs">{resolved.name ? <><span className="text-[var(--accent)]">{resolved.name}</span> ({resolved.address.slice(0, 10)}…)</> : resolved.address.slice(0, 16) + "…"}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-neutral-500">Amount</span>
-            <span className="text-neutral-200">{amount} POT</span>
+            <span className="text-[var(--muted)]">Amount</span>
+            <span className="text-[var(--text)]">{amount} POT</span>
           </div>
         </div>
       )}
 
-      {!selected && <p className="text-xs text-neutral-500">Connect a wallet to send.</p>}
-      {selected && !selected.signer && <p className="text-xs text-yellow-500">Extension wallet sending not yet wired. Use a dev account.</p>}
+      {!selected && <p className="text-xs text-[var(--muted)]">Connect a wallet to send.</p>}
+      {selected && !selected.signer && <p className="text-xs text-[var(--warning)]">Extension wallet sending not yet wired. Use a dev account.</p>}
 
-      {err && <p className="text-xs text-red-400">{err}</p>}
-      {status === "done" && <p className="text-xs text-green-400">Sent successfully.</p>}
+      {err && <p className="text-xs text-[var(--error)]">{err}</p>}
+      {status === "done" && <p className="text-xs text-[var(--success)]">Sent successfully.</p>}
 
       <button
         onClick={handleSend}
         disabled={!canSend}
-        className="w-full py-3 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 text-white font-semibold rounded-xl transition-colors"
+        className="w-full py-3 bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-40 text-white font-semibold rounded-xl transition-colors"
       >
         {status === "sending" ? "Sending…" : "Send"}
       </button>
@@ -222,35 +222,35 @@ function ReceivePanel() {
   if (!selected) return null;
 
   return (
-    <div className="bg-neutral-900 border border-neutral-800 rounded-2xl px-6 py-5 space-y-4">
-      <h3 className="font-semibold text-neutral-100">Receive</h3>
+    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl px-6 py-5 space-y-4">
+      <h3 className="font-semibold text-[var(--text)]">Receive</h3>
 
       {primaryName && (
         <div className="text-center py-2">
-          <p className="text-2xl font-bold text-violet-400">{primaryName}</p>
-          <p className="text-xs text-neutral-500 mt-1">Your primary name</p>
+          <p className="text-2xl font-bold text-[var(--accent)]">{primaryName}</p>
+          <p className="text-xs text-[var(--muted)] mt-1">Your primary name</p>
         </div>
       )}
       {!primaryName && (
-        <p className="text-xs text-neutral-400">
-          No primary name set. <Link href={`/search`} className="text-violet-400 hover:underline">Claim a name</Link> to send and receive by name.
+        <p className="text-xs text-[var(--muted)]">
+          No primary name set. <Link href={`/search`} className="text-[var(--accent)] hover:underline">Claim a name</Link> to send and receive by name.
         </p>
       )}
 
-      <div className="bg-neutral-800 rounded-xl px-4 py-3 space-y-2">
+      <div className="bg-[var(--paper)] rounded-xl px-4 py-3 space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-xs text-neutral-500">Address</span>
-          <button onClick={copy} className="text-xs text-violet-400 hover:text-violet-300">
+          <span className="text-xs text-[var(--muted)]">Address</span>
+          <button onClick={copy} className="text-xs text-[var(--accent)] hover:text-[var(--accent)]">
             {copied ? "Copied!" : "Copy"}
           </button>
         </div>
-        <p className="text-xs font-mono text-neutral-300 break-all">{selected.address}</p>
+        <p className="text-xs font-mono text-[var(--text-2)] break-all">{selected.address}</p>
       </div>
 
       {balance !== undefined && (
         <div className="flex justify-between items-center">
-          <span className="text-sm text-neutral-500">Balance</span>
-          <span className="text-lg font-semibold text-neutral-100">{formatPOT(balance)} POT</span>
+          <span className="text-sm text-[var(--muted)]">Balance</span>
+          <span className="text-lg font-semibold text-[var(--text)]">{formatPOT(balance)} POT</span>
         </div>
       )}
     </div>
@@ -298,8 +298,8 @@ function AddressBook({ onSelect }: { onSelect: (name: string) => void }) {
   };
 
   return (
-    <div className="bg-neutral-900 border border-neutral-800 rounded-2xl px-6 py-5 space-y-4">
-      <h3 className="font-semibold text-neutral-100">Address Book</h3>
+    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl px-6 py-5 space-y-4">
+      <h3 className="font-semibold text-[var(--text)]">Address Book</h3>
 
       <div className="flex gap-2">
         <input
@@ -307,39 +307,39 @@ function AddressBook({ onSelect }: { onSelect: (name: string) => void }) {
           onChange={(e) => { setInput(e.target.value); setResolveErr(null); }}
           onKeyDown={(e) => e.key === "Enter" && add()}
           placeholder="alice.pot"
-          className="flex-1 bg-neutral-800 border border-neutral-700 rounded-xl px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-600 outline-none focus:border-violet-500"
+          className="flex-1 bg-[var(--paper)] border border-[var(--border)] rounded-xl px-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--muted)] outline-none focus:border-[var(--accent)]"
         />
         <button
           onClick={add}
           disabled={resolving || !input.trim()}
-          className="px-4 py-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 text-white text-sm font-medium rounded-xl"
+          className="px-4 py-2 bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-40 text-white text-sm font-medium rounded-xl"
         >
           {resolving ? "…" : "Add"}
         </button>
       </div>
-      {resolveErr && <p className="text-xs text-red-400">{resolveErr}</p>}
+      {resolveErr && <p className="text-xs text-[var(--error)]">{resolveErr}</p>}
 
       {book.length === 0 && (
-        <p className="text-sm text-neutral-600">No saved names yet.</p>
+        <p className="text-sm text-[var(--muted)]">No saved names yet.</p>
       )}
 
       <div className="space-y-2">
         {book.map((entry) => (
-          <div key={entry.name} className="flex items-center justify-between bg-neutral-800 rounded-xl px-4 py-3">
+          <div key={entry.name} className="flex items-center justify-between bg-[var(--paper)] rounded-xl px-4 py-3">
             <div>
-              <p className="text-sm font-medium text-violet-400">{entry.name}</p>
-              <p className="text-xs font-mono text-neutral-500 mt-0.5">{entry.address.slice(0, 14)}…{entry.address.slice(-6)}</p>
+              <p className="text-sm font-medium text-[var(--accent)]">{entry.name}</p>
+              <p className="text-xs font-mono text-[var(--muted)] mt-0.5">{entry.address.slice(0, 14)}…{entry.address.slice(-6)}</p>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => onSelect(entry.name)}
-                className="px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium rounded-lg"
+                className="px-3 py-1.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-xs font-medium rounded-lg"
               >
                 Send
               </button>
               <button
                 onClick={() => remove(entry.name)}
-                className="px-3 py-1.5 bg-neutral-700 hover:bg-neutral-600 text-neutral-400 text-xs rounded-lg"
+                className="px-3 py-1.5 bg-[var(--paper)] hover:bg-[var(--paper)] text-[var(--muted)] text-xs rounded-lg"
               >
                 ✕
               </button>
@@ -376,33 +376,33 @@ function HistoryPanel({ history }: { history: HistoryEntry[] }) {
 
   const label = (addr: string, name?: string) => {
     const n = name ?? resolved[addr];
-    if (n) return <span className="text-violet-400">{n}</span>;
+    if (n) return <span className="text-[var(--accent)]">{n}</span>;
     return <span className="font-mono">{addr.slice(0, 10)}…{addr.slice(-6)}</span>;
   };
 
   if (!history.length) return (
-    <div className="bg-neutral-900 border border-neutral-800 rounded-2xl px-6 py-5">
-      <h3 className="font-semibold text-neutral-100 mb-3">History</h3>
-      <p className="text-sm text-neutral-600">No transactions yet.</p>
+    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl px-6 py-5">
+      <h3 className="font-semibold text-[var(--text)] mb-3">History</h3>
+      <p className="text-sm text-[var(--muted)]">No transactions yet.</p>
     </div>
   );
 
   return (
-    <div className="bg-neutral-900 border border-neutral-800 rounded-2xl px-6 py-5 space-y-3">
-      <h3 className="font-semibold text-neutral-100">History</h3>
+    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl px-6 py-5 space-y-3">
+      <h3 className="font-semibold text-[var(--text)]">History</h3>
       <div className="space-y-2">
         {history.map((h, i) => {
           const isSent = h.from === selected?.address;
           return (
-            <div key={i} className="flex items-center justify-between bg-neutral-800 rounded-xl px-4 py-3">
+            <div key={i} className="flex items-center justify-between bg-[var(--paper)] rounded-xl px-4 py-3">
               <div className="space-y-0.5">
-                <div className="flex items-center gap-1.5 text-xs text-neutral-400">
-                  <span className={isSent ? "text-red-400" : "text-green-400"}>{isSent ? "Sent to" : "Received from"}</span>
+                <div className="flex items-center gap-1.5 text-xs text-[var(--muted)]">
+                  <span className={isSent ? "text-[var(--error)]" : "text-[var(--success)]"}>{isSent ? "Sent to" : "Received from"}</span>
                   <span>{label(isSent ? h.to : h.from, isSent ? h.toName : h.fromName)}</span>
                 </div>
-                <p className="text-xs text-neutral-600">{new Date(h.date).toLocaleString()}</p>
+                <p className="text-xs text-[var(--muted)]">{new Date(h.date).toLocaleString()}</p>
               </div>
-              <span className={`text-sm font-semibold ${isSent ? "text-red-400" : "text-green-400"}`}>
+              <span className={`text-sm font-semibold ${isSent ? "text-[var(--error)]" : "text-[var(--success)]"}`}>
                 {isSent ? "-" : "+"}{h.amount} POT
               </span>
             </div>
@@ -434,13 +434,13 @@ export default function WalletPage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-neutral-100">Wallet</h2>
-        <p className="text-xs text-neutral-500">Send & receive using <span className="text-violet-400">.pot</span> names</p>
+        <h2 className="text-2xl font-bold text-[var(--text)]">Wallet</h2>
+        <p className="text-xs text-[var(--muted)]">Send & receive using <span className="text-[var(--accent)]">.pot</span> names</p>
       </div>
 
       {!account ? (
         <div className="space-y-4">
-          <p className="text-sm text-neutral-400">Connect a wallet to get started.</p>
+          <p className="text-sm text-[var(--muted)]">Connect a wallet to get started.</p>
           <WalletConnect />
         </div>
       ) : (

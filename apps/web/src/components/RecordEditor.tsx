@@ -43,56 +43,62 @@ export function RecordEditor({ initial = {}, onSave, isSaving }: RecordEditorPro
     setCustomValue("");
   };
 
+  const inputBase =
+    "flex-1 bg-[var(--paper)] border border-[var(--border)] rounded-xl px-3 py-2.5 text-[14px] text-[var(--text)] placeholder:text-[var(--muted)] outline-none focus:border-[var(--accent)] transition-colors";
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {WELL_KNOWN_KEYS.map((key) => (
         <div key={key} className="flex gap-3 items-center">
-          <label className="w-36 text-sm text-neutral-400 font-mono shrink-0">{key}</label>
+          <label className="w-36 text-[12px] text-[var(--muted)] font-mono shrink-0">{key}</label>
           <input
             type="text"
             value={records[key] ?? ""}
             onChange={(e) => set(key, e.target.value)}
             placeholder={`Enter ${key}`}
-            className="flex-1 bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-600 outline-none focus:border-violet-600"
+            className={inputBase}
           />
         </div>
       ))}
 
       {Object.keys(records)
-        .filter((k) => !(WELL_KNOWN_KEYS as string[]).includes(k))
+        .filter((k) => !(WELL_KNOWN_KEYS as readonly string[]).includes(k))
         .map((key) => (
           <div key={key} className="flex gap-3 items-center">
-            <label className="w-36 text-sm text-violet-400 font-mono shrink-0 truncate">{key}</label>
+            <label className="w-36 text-[12px] text-[var(--accent)] font-mono shrink-0 truncate">{key}</label>
             <input
               type="text"
               value={records[key]}
               onChange={(e) => set(key, e.target.value)}
-              className="flex-1 bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-neutral-100 outline-none focus:border-violet-600"
+              className={inputBase}
             />
-            <button onClick={() => remove(key)} className="text-red-500 hover:text-red-400 text-sm">
+            <button
+              onClick={() => remove(key)}
+              className="text-[12px] text-[var(--error)] hover:underline"
+            >
               Remove
             </button>
           </div>
         ))}
 
-      <div className="flex gap-3 items-center pt-2 border-t border-neutral-700">
+      <div className="flex gap-3 items-center pt-3 border-t border-[var(--border)]">
         <input
           type="text"
           value={customKey}
           onChange={(e) => setCustomKey(e.target.value)}
           placeholder="custom.key"
-          className="w-36 bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-neutral-300 placeholder:text-neutral-600 outline-none font-mono"
+          className="w-36 bg-[var(--paper)] border border-[var(--border)] rounded-xl px-3 py-2 text-[13px] text-[var(--text-2)] placeholder:text-[var(--muted)] outline-none font-mono focus:border-[var(--accent)] transition-colors"
         />
         <input
           type="text"
           value={customValue}
           onChange={(e) => setCustomValue(e.target.value)}
           placeholder="value"
-          className="flex-1 bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-600 outline-none"
+          className={inputBase}
         />
         <button
           onClick={addCustom}
-          className="px-3 py-2 bg-neutral-700 hover:bg-neutral-600 text-sm text-neutral-200 rounded-lg"
+          className="px-4 py-2 bg-[var(--paper)] hover:bg-[var(--accent-soft)] border border-[var(--border)] text-[13px] text-[var(--text)] rounded-xl font-medium transition-colors"
         >
           Add
         </button>
@@ -101,7 +107,7 @@ export function RecordEditor({ initial = {}, onSave, isSaving }: RecordEditorPro
       <button
         onClick={() => onSave(records)}
         disabled={isSaving}
-        className="w-full py-3 bg-violet-600 hover:bg-violet-500 text-white font-medium rounded-xl transition-colors disabled:opacity-50"
+        className="w-full py-3 mt-3 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-semibold uppercase tracking-wider text-[13px] rounded-2xl transition-colors disabled:opacity-50 shadow-[0_2px_0_rgba(0,80,120,0.18)]"
       >
         {isSaving ? "Saving…" : "Save Records"}
       </button>

@@ -90,6 +90,22 @@ describe("Name registration flow", () => {
     const resolved = await client.resolveName(`${TEST_LABEL}.pot`);
     expect(resolved.owner).toBe(alice.address);
   }, 30_000);
+
+  it("resolveName reads text records written to the resolver", async () => {
+    const { setText } = await import("../src/contracts/resolver.js");
+    const node = namehash(normaliseName(`${TEST_LABEL}.pot`));
+    await setText(
+      client.api,
+      LOCAL_ADDRESSES.resolver,
+      loadAbi("resolver"),
+      node,
+      "description",
+      "integration-readback",
+      alice
+    );
+    const resolved = await client.resolveName(`${TEST_LABEL}.pot`);
+    expect(resolved.textRecords.description).toBe("integration-readback");
+  }, 60_000);
 });
 
 describe("Resolver: text records", () => {

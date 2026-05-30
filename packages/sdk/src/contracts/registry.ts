@@ -64,6 +64,51 @@ export async function setResolver(
   return signAndSend(tx, signer);
 }
 
+export function buildSetApprovalForAll(
+  api: ApiPromise,
+  address: string,
+  abi: unknown,
+  operator: string,
+  approved: boolean
+): import("@polkadot/api/types").SubmittableExtrinsic<"promise"> {
+  const contract = getRegistryContract(api, address, abi);
+  return contract.tx.setApprovalForAll(
+    {
+      gasLimit: (api.registry.createType("WeightV2", {
+        refTime: 30_000_000_000n,
+        proofSize: 131_072n,
+      })) as unknown as bigint,
+      storageDepositLimit: null,
+    },
+    operator,
+    approved
+  );
+}
+
+export async function isApprovedForAll(
+  api: ApiPromise,
+  address: string,
+  abi: unknown,
+  owner: string,
+  operator: string,
+  caller: string
+): Promise<boolean> {
+  const contract = getRegistryContract(api, address, abi);
+  const { output } = await contract.query.isApprovedForAll(
+    caller,
+    {
+      gasLimit: (api.registry.createType("WeightV2", {
+        refTime: 30_000_000_000n,
+        proofSize: 131_072n,
+      })) as unknown as bigint,
+      storageDepositLimit: null,
+    },
+    owner,
+    operator
+  );
+  return unwrapOk<boolean>(output?.toJSON()) ?? false;
+}
+
 export async function recordExists(
   api: ApiPromise,
   address: string,

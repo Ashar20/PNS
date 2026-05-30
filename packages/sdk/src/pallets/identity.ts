@@ -3,7 +3,28 @@ import type { KeyringPair } from "@polkadot/keyring/types";
 import type { ProfileFields, TxResult } from "../types.js";
 import { signAndSend } from "../utils.js";
 
+/**
+ * True if the connected runtime exposes pallet_identity.setIdentity.
+ * Substrate-contracts-node, for example, does not include this pallet.
+ */
+export function hasIdentityPallet(api: ApiPromise): boolean {
+  return !!api.tx.identity?.setIdentity;
+}
+
+const IDENTITY_INFO_TYPE_CANDIDATES = [
+  "PalletIdentityLegacyIdentityInfo", // Polkadot post-username refactor
+  "PalletIdentitySimpleIdentityInfo", // older Polkadot / Substrate node template
+  "IdentityInfo",                     // generic alias on some runtimes
+] as const;
+
 export function buildIdentityInfo(api: ApiPromise, fields: ProfileFields): unknown {
+  if (!hasIdentityPallet(api)) {
+    throw new Error(
+      "Connected runtime does not include pallet_identity — cannot build IdentityInfo. " +
+      "Disable identity sync, or connect to a chain that exposes the identity pallet."
+    );
+  }
+
   const data = (v: string | undefined) =>
     v ? { Raw: v } : { None: null };
 
@@ -12,7 +33,7 @@ export function buildIdentityInfo(api: ApiPromise, fields: ProfileFields): unkno
     { Raw: v },
   ]);
 
-  return api.createType("PalletIdentityLegacyIdentityInfo", {
+  const info = {
     display: data(fields.display),
     legal: data(fields.legal),
     web: data(fields.web),
@@ -21,7 +42,21 @@ export function buildIdentityInfo(api: ApiPromise, fields: ProfileFields): unkno
     image: data(fields.image),
     twitter: data(fields.twitter),
     additional,
-  });
+  };
+
+  // Different Polkadot runtimes have renamed this type over time. Try each
+  // known candidate so the SDK works across Polkadot, Kusama, Westend, etc.
+  let lastErr: unknown;
+  for (const candidate of IDENTITY_INFO_TYPE_CANDIDATES) {
+    try {
+      return api.createType(candidate, info);
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw new Error(
+    `Could not construct IdentityInfo on this runtime. Tried [${IDENTITY_INFO_TYPE_CANDIDATES.join(", ")}]. Last error: ${String(lastErr)}`
+  );
 }
 
 export async function setIdentity(

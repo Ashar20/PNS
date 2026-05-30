@@ -12,6 +12,15 @@ pub mod community_registrar {
     const SEL_SET_SUBNODE_OWNER: [u8; 4] = [0x55, 0x25, 0x57, 0x50];
     const SEL_SET_OWNER: [u8; 4] = [0x36, 0x7f, 0xac, 0xd6];
 
+    // Mirror of registry::Error so SCALE-decoding the cross-contract
+    // Result<(), Error> return value lines up with the wire format.
+    #[derive(scale::Encode, scale::Decode, Debug, PartialEq, Eq)]
+    #[cfg_attr(feature = "std", derive(scale_info::TypeInfo))]
+    pub enum RegistryErr {
+        NotAuthorized,
+        NodeNotFound,
+    }
+
     #[ink(storage)]
     pub struct CommunityRegistrar {
         registry: AccountId,
@@ -150,18 +159,22 @@ pub mod community_registrar {
             let subnode = Self::subnode(self.parent_node, label_hash);
 
             use ink::env::call::{build_call, ExecutionInput, Selector};
-            // Transfer subnode ownership to zero address (effectively null)
-            build_call::<ink::env::DefaultEnvironment>()
-                .call(self.registry)
-                .ref_time_limit(10_000_000_000)
-                .proof_size_limit(11_990_383_647_911_208_550)
-                .exec_input(
-                    ExecutionInput::new(Selector::new(SEL_SET_OWNER))
-                        .push_arg(subnode)
-                        .push_arg(AccountId::from([0u8; 32])),
-                )
-                .returns::<()>()
-                .invoke();
+            // Transfer subnode ownership to zero address (effectively null).
+            // Registry::set_owner returns Result<(), Error>; the cross-contract
+            // call ignores the success/failure since revocation is best-effort
+            // after the local member maps have already been mutated.
+            let _: core::result::Result<(), RegistryErr> =
+                build_call::<ink::env::DefaultEnvironment>()
+                    .call(self.registry)
+                    .ref_time_limit(10_000_000_000)
+                    .proof_size_limit(11_990_383_647_911_208_550)
+                    .exec_input(
+                        ExecutionInput::new(Selector::new(SEL_SET_OWNER))
+                            .push_arg(subnode)
+                            .push_arg(AccountId::from([0u8; 32])),
+                    )
+                    .returns::<core::result::Result<(), RegistryErr>>()
+                    .invoke();
 
             self.members.remove(label_hash);
             self.roles.remove(label_hash);

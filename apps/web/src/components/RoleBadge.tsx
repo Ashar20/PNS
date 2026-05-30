@@ -1,11 +1,11 @@
 import { ROLE_TO_PROXY_TYPE } from "@pns/sdk";
 
-const ROLE_COLORS: Record<string, string> = {
-  admin: "bg-red-900/40 text-red-300 border-red-800",
-  treasurer: "bg-yellow-900/40 text-yellow-300 border-yellow-800",
-  voter: "bg-blue-900/40 text-blue-300 border-blue-800",
-  staker: "bg-green-900/40 text-green-300 border-green-800",
-  judge: "bg-purple-900/40 text-purple-300 border-purple-800",
+const ROLE_STYLES: Record<string, { bg: string; ink: string; border: string }> = {
+  admin:     { bg: "rgba(200, 49, 47, 0.10)",  ink: "var(--error)",     border: "rgba(200, 49, 47, 0.25)" },
+  treasurer: { bg: "rgba(178, 107, 0, 0.10)",  ink: "var(--warning)",   border: "rgba(178, 107, 0, 0.28)" },
+  voter:     { bg: "var(--blue-tint)",          ink: "var(--blue-ink)",  border: "rgba(0, 128, 188, 0.22)" },
+  staker:    { bg: "var(--green-tint)",         ink: "var(--green-ink)", border: "rgba(31, 127, 47, 0.22)" },
+  judge:     { bg: "var(--pink-tint)",          ink: "var(--pink-ink)",  border: "rgba(196, 33, 104, 0.22)" },
 };
 
 interface RoleBadgeProps {
@@ -14,15 +14,20 @@ interface RoleBadgeProps {
 
 export function RoleBadge({ role }: RoleBadgeProps) {
   const proxyType = ROLE_TO_PROXY_TYPE[role.toLowerCase()] ?? "Any";
-  const colorClass = ROLE_COLORS[role.toLowerCase()] ?? "bg-neutral-800 text-neutral-300 border-neutral-700";
+  const style = ROLE_STYLES[role.toLowerCase()] ?? {
+    bg: "var(--paper)",
+    ink: "var(--text-2)",
+    border: "var(--border)",
+  };
 
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-medium ${colorClass}`}
+      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[12px] font-medium"
+      style={{ background: style.bg, color: style.ink, borderColor: style.border }}
       title={`Substrate proxy type: ${proxyType}`}
     >
       {role}
-      <span className="opacity-60 text-[10px]">({proxyType})</span>
+      <span className="opacity-60 text-[10px] font-mono">({proxyType})</span>
     </span>
   );
 }

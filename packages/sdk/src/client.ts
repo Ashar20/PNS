@@ -21,10 +21,17 @@ import { getAddr, getText, setAddr, setText } from "./contracts/resolver.js";
 import { listAttestationsForSubject } from "./flows/attest.js";
 import { registerName } from "./flows/register.js";
 import { claimSubname, revokeSubname } from "./flows/claim-subname.js";
+import {
+  issueSubnameAsOwner,
+  listSubnamesForParent,
+  getCommunityRegistrarAddress,
+  persistRegistrarMeta,
+  approveCommunityRegistrar,
+} from "./flows/issue-subname-owner.js";
 import { setIdentity, provideJudgement } from "./pallets/identity.js";
 import { deriveMultisigAddress } from "./pallets/multisig.js";
 import { proposeBounty, claimBounty as palletClaimBounty, getNextBountyId } from "./pallets/bounties.js";
-import { signAndSend, unwrapOk } from "./utils.js";
+import { signAndSend, unwrapOk, isZeroAccount } from "./utils.js";
 import { TEXT_KEYS, REGISTRATION_PRICE, LOCAL_WS } from "./constants.js";
 import { ContractPromise } from "@polkadot/api-contract";
 
@@ -62,30 +69,45 @@ export class PNSClient {
     const node = namehash(normalised);
     const caller = this.api.registry.createType("AccountId", new Uint8Array(32)).toString();
 
-    const [owner, resolverAddr] = await Promise.all([
-      getOwner(this.api, this.addresses.registry, this.abis.registry, node, caller),
-      getOwner(this.api, this.addresses.registry, this.abis.registry, node, caller).then(() =>
-        this.api.query.contracts?.call ? undefined : undefined
-      ),
-    ]);
+    const owner = await getOwner(
+      this.api,
+      this.addresses.registry,
+      this.abis.registry,
+      node,
+      caller
+    );
 
-    // Get resolver address from registry
-    const resolverAddress = await this._getResolver(node, caller);
-    const addr = resolverAddress
-      ? await getAddr(this.api, resolverAddress, this.abis.resolver, node, caller)
-      : null;
+    // Registry may not have set_resolver yet; fall back to the deployed PublicResolver.
+    const registryResolver = await this._getResolver(node, caller);
+    const resolverAddress =
+      registryResolver && !isZeroAccount(registryResolver)
+        ? registryResolver
+        : this.addresses.resolver;
+
+    const addr = await getAddr(
+      this.api,
+      resolverAddress,
+      this.abis.resolver,
+      node,
+      caller
+    );
 
     const textRecords: Record<string, string> = {};
-    if (resolverAddress) {
-      for (const key of Object.values(TEXT_KEYS)) {
-        const val = await getText(this.api, resolverAddress, this.abis.resolver, node, key, caller);
-        if (val) textRecords[key] = val;
-      }
+    for (const key of Object.values(TEXT_KEYS)) {
+      const val = await getText(
+        this.api,
+        resolverAddress,
+        this.abis.resolver,
+        node,
+        key,
+        caller
+      );
+      if (val) textRecords[key] = val;
     }
 
     return {
       name: normalised,
-      owner: owner ?? "0x00",
+      owner: isZeroAccount(owner) ? "0x00" : (owner ?? "0x00"),
       resolver: resolverAddress,
       addr,
       textRecords,
@@ -106,11 +128,8 @@ export class PNSClient {
       Array.from(node)
     );
     const addr = unwrapOk<string>(output?.toJSON());
-    // Zero address means no resolver set
-    if (!addr || addr === "0x0000000000000000000000000000000000000000000000000000000000000000") {
-      return null;
-    }
-    return addr;
+    if (isZeroAccount(addr)) return null;
+    return addr ?? null;
   }
 
   async resolveAddress(addr: string): Promise<string | null> {
@@ -150,6 +169,9 @@ export class PNSClient {
       owner,
       registrarAddress: this.addresses.registrar,
       registrarAbi: this.abis.registrar,
+      registryAddress: this.addresses.registry,
+      registryAbi: this.abis.registry,
+      resolverAddress: this.addresses.resolver,
       registrationPrice: REGISTRATION_PRICE,
       signer,
       setIdentityFields: identityFields,
@@ -174,14 +196,86 @@ export class PNSClient {
     return claimSubname(this.api, opts);
   }
 
+  /** Parent owner mints a subname (single signer, no multisig). */
+  async issueSubnameAsOwner(opts: {
+    parentName: string;
+    label: string;
+    member: string;
+    role: string;
+    communityRegistrarAddress: string;
+    signer: KeyringPair;
+  }): Promise<TxResult> {
+    return issueSubnameAsOwner(this.api, {
+      ...opts,
+      communityAbi: this.abis.community,
+      registryAddress: this.addresses.registry,
+      registryAbi: this.abis.registry,
+      resolverAddress: this.addresses.resolver,
+      resolverAbi: this.abis.resolver,
+    });
+  }
+
+  async approveCommunityRegistrar(
+    parentName: string,
+    registrarAddress: string,
+    signer: KeyringPair
+  ): Promise<TxResult> {
+    return approveCommunityRegistrar(this.api, {
+      registryAddress: this.addresses.registry,
+      registryAbi: this.abis.registry,
+      registrarAddress,
+      owner: signer.address,
+      signer,
+    });
+  }
+
+  async getCommunityRegistrar(parentName: string, caller: string): Promise<string | null> {
+    return getCommunityRegistrarAddress(
+      this.api,
+      parentName,
+      this.addresses.resolver,
+      this.abis.resolver,
+      caller
+    );
+  }
+
+  async saveCommunityRegistrar(
+    parentName: string,
+    registrarAddress: string,
+    signer: KeyringPair
+  ): Promise<TxResult> {
+    return persistRegistrarMeta(this.api, {
+      parentName,
+      registryAddress: this.addresses.registry,
+      registryAbi: this.abis.registry,
+      resolverAddress: this.addresses.resolver,
+      resolverAbi: this.abis.resolver,
+      registrarAddress,
+      index: [],
+      signer,
+    });
+  }
+
+  async listSubnames(parentName: string, ownerAddress: string): Promise<Member[]> {
+    const registrar = await this.getCommunityRegistrar(parentName, ownerAddress);
+    return listSubnamesForParent(this.api, {
+      parentName,
+      ownerAddress,
+      resolverAddress: this.addresses.resolver,
+      resolverAbi: this.abis.resolver,
+      communityRegistrarAddress: registrar,
+      communityAbi: registrar ? this.abis.community : undefined,
+    });
+  }
+
   async revokeSubname(opts: RevokeSubnameOpts): Promise<TxResult> {
     return revokeSubname(this.api, opts);
   }
 
+  /** @deprecated Use listSubnames */
   async listMembers(parentName: string): Promise<Member[]> {
-    // In a real implementation, query the CommunityRegistrar contract events
-    // to build the member list. Placeholder returns empty.
-    return [];
+    const caller = this.api.registry.createType("AccountId", new Uint8Array(32)).toString();
+    return this.listSubnames(parentName, caller);
   }
 
   // ── Attestations ─────────────────────────────────────────────────────────────

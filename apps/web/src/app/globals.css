@@ -2,22 +2,175 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Fonts: Switzer (UI), Instrument Serif italic (display accent), JetBrains Mono (mono).
+   Fontshare provides Switzer, Google Fonts the others. */
+@import url('https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
 :root {
-  color-scheme: dark;
+  color-scheme: light;
+
+  --bg: #F5F2EB;
+  --paper: #EFEBE0;
+  --surface: #FFFFFF;
+  --border: #E3DECE;
+  --border-strong: #C9C2AB;
+  --text: #0E1A26;
+  --text-2: #2B3A47;
+  --muted: #5F6C76;
+
+  --accent: #0080BC;
+  --accent-hover: #006FA3;
+  --accent-soft: #DCEEF8;
+  --accent-text: #00557A;
+
+  /* Pastel block palette (matches the ENS reference) */
+  --green-bg: #BDDDB7;
+  --green-tint: #DBEDD7;
+  --green-ink: #1F7F2F;
+  --green-pill: #1F7F2F;
+  --green-chip: #C8E3C2;
+
+  --pink-bg: #F4BFD0;
+  --pink-tint: #FAD9E3;
+  --pink-ink: #C42168;
+  --pink-pill: #DA2474;
+  --pink-chip: #F8C9D9;
+
+  --blue-bg: #A8CDDC;
+  --blue-tint: #CCE0E9;
+  --blue-ink: #0080BC;
+  --blue-pill: #0080BC;
+  --blue-chip: #BDD7E2;
+
+  --notice-bg: #FFF6D6;
+  --notice-border: #E8D78D;
+  --notice-ink: #5C4818;
+
+  --success: #16803B;
+  --warning: #B26B00;
+  --error: #C8312F;
+
+  --font-ui: "Switzer", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-serif: "Instrument Serif", "Georgia", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-feature-settings: "ss01", "cv01", "cv11";
 }
 
 body {
   @apply antialiased;
+  background-image:
+    radial-gradient(rgba(14, 26, 38, 0.04) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* Dot overlay for pastel color blocks — denser, darker, matches ENS reference */
+.dot-overlay {
+  position: relative;
+  isolation: isolate;
+}
+.dot-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.55) 1.5px, transparent 1.5px);
+  background-size: 16px 16px;
+  background-position: 0 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.dot-overlay > * { position: relative; z-index: 1; }
+
+/* Selection */
+::selection {
+  background: var(--accent);
+  color: white;
 }
 
 /* Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
-::-webkit-scrollbar-track {
-  @apply bg-neutral-900;
-}
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  @apply bg-neutral-700 rounded-full;
+  background: var(--border-strong);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+/* Utility — italic serif accent for hero text */
+.serif-italic {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* Banner gradient — deterministic stripes for profile headers */
+.profile-banner {
+  background-image:
+    linear-gradient(135deg, var(--c1, #B6DAEC) 0%, var(--c2, #F2D58F) 60%, var(--c3, #E9B7D9) 100%);
+}
+
+/* Card */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+}
+
+/* Pill input */
+.pill-input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+.pill-input:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(0, 128, 188, 0.12);
+}
+
+/* Avatar gradient — soft, refined */
+.pns-avatar {
+  background-image:
+    radial-gradient(circle at 28% 25%, var(--g1, #C7E1F0), transparent 55%),
+    radial-gradient(circle at 75% 70%, var(--g2, #F2D58F), transparent 55%),
+    linear-gradient(135deg, var(--g3, #B6DAEC), var(--g4, #E9B7D9));
+}
+
+/* Tab underline */
+.tab {
+  position: relative;
+  padding-bottom: 12px;
+}
+.tab[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+}
+
+/* Inline link */
+a.inline-link {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-color: rgba(0, 128, 188, 0.3);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 160ms;
+}
+a.inline-link:hover {
+  text-decoration-color: var(--accent);
 }

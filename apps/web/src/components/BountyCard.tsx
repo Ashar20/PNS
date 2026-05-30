@@ -11,38 +11,34 @@ interface BountyCardProps {
   isSigner?: boolean;
 }
 
-const STATUS_STYLES: Record<BountyCardProps["status"], string> = {
-  Proposed: "text-neutral-400",
-  Approved: "text-blue-400",
-  Funded: "text-cyan-400",
-  CuratorProposed: "text-yellow-400",
-  Active: "text-green-400",
-  PendingPayout: "text-violet-400",
+const STATUS_INK: Record<BountyCardProps["status"], string> = {
+  Proposed: "var(--muted)",
+  Approved: "var(--accent)",
+  Funded: "var(--blue-ink)",
+  CuratorProposed: "var(--warning)",
+  Active: "var(--success)",
+  PendingPayout: "var(--pink-ink)",
 };
 
 export function BountyCard({
-  id,
-  description,
-  value,
-  status,
-  beneficiary,
-  onClaim,
-  onAward,
-  isSigner,
+  id, description, value, status, beneficiary, onClaim, onAward, isSigner,
 }: BountyCardProps) {
-  // 14 decimals POT
   const displayValue = (Number(value) / 1e14).toFixed(2);
 
   return (
-    <div className="bg-neutral-800/50 border border-neutral-700 rounded-xl px-4 py-4">
-      <div className="flex items-start justify-between mb-2">
-        <div>
-          <span className="text-xs text-neutral-500">Bounty #{id}</span>
-          <p className="text-sm text-neutral-200 mt-1">{description}</p>
+    <div className="card px-5 py-4">
+      <div className="flex items-start justify-between mb-2 gap-4">
+        <div className="min-w-0">
+          <span className="text-[11px] font-mono uppercase tracking-wider text-[var(--muted)]">
+            Bounty #{id}
+          </span>
+          <p className="text-[14px] text-[var(--text)] mt-1">{description}</p>
         </div>
-        <div className="text-right">
-          <p className="text-base font-semibold text-neutral-100">{displayValue} POT</p>
-          <span className={`text-xs ${STATUS_STYLES[status]}`}>{status}</span>
+        <div className="text-right shrink-0">
+          <p className="text-[16px] font-semibold text-[var(--text)]">{displayValue} POT</p>
+          <span className="text-[12px] font-medium" style={{ color: STATUS_INK[status] }}>
+            {status}
+          </span>
         </div>
       </div>
 
@@ -50,7 +46,7 @@ export function BountyCard({
         {status === "PendingPayout" && onClaim && (
           <button
             onClick={() => onClaim(id)}
-            className="px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium rounded-lg"
+            className="px-3 py-1.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-[12px] font-semibold uppercase tracking-wider rounded-lg"
           >
             Claim
           </button>
@@ -58,7 +54,8 @@ export function BountyCard({
         {status === "Active" && isSigner && onAward && beneficiary && (
           <button
             onClick={() => onAward(id, beneficiary)}
-            className="px-3 py-1.5 bg-green-700 hover:bg-green-600 text-white text-xs font-medium rounded-lg"
+            className="px-3 py-1.5 text-white text-[12px] font-semibold uppercase tracking-wider rounded-lg"
+            style={{ background: "var(--success)" }}
           >
             Award
           </button>

@@ -115,13 +115,14 @@ pub mod registry {
         }
 
         #[ink(message)]
-        pub fn set_owner(&mut self, node: [u8; 32], new_owner: AccountId) {
+        pub fn set_owner(&mut self, node: [u8; 32], new_owner: AccountId) -> Result<()> {
             let caller = self.env().caller();
             if !self.is_authorized(&node, &caller) {
-                return;
+                return Err(Error::NotAuthorized);
             }
             self.owners.insert(node, &new_owner);
             self.env().emit_event(Transfer { node, owner: new_owner });
+            Ok(())
         }
 
         #[ink(message)]
@@ -274,7 +275,7 @@ pub mod registry {
             let label_hash = keccak256(b"pot");
             let subnode = registry
                 .set_subnode_owner([0u8; 32], label_hash, bob)
-                .unwrap();
+                .expect("root owner can create subnode");
             assert_eq!(registry.owner(subnode), bob);
         }
 

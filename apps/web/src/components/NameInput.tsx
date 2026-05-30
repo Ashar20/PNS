@@ -6,12 +6,28 @@ import { normaliseName } from "@pns/sdk";
 interface NameInputProps {
   value: string;
   onChange: (normalised: string, raw: string) => void;
+  onEnter?: () => void;
   placeholder?: string;
   suffix?: string;
+  size?: "md" | "lg" | "xl";
   className?: string;
 }
 
-export function NameInput({ value, onChange, placeholder = "search name", suffix = ".pot", className = "" }: NameInputProps) {
+const SIZE_STYLES: Record<NonNullable<NameInputProps["size"]>, string> = {
+  md: "text-[15px] px-5 py-3 rounded-2xl",
+  lg: "text-[17px] px-6 py-4 rounded-2xl",
+  xl: "text-[22px] px-7 py-5 rounded-[28px]",
+};
+
+export function NameInput({
+  value,
+  onChange,
+  onEnter,
+  placeholder = "search names",
+  suffix = ".pot",
+  size = "lg",
+  className = "",
+}: NameInputProps) {
   const [raw, setRaw] = useState(value);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,29 +43,32 @@ export function NameInput({ value, onChange, placeholder = "search name", suffix
       setError(null);
       onChange(normalised, raw);
     } catch (e) {
-      setError(String(e));
+      setError(String(e).replace("Error: ", ""));
       onChange("", raw);
     }
   }, [raw]);
 
   return (
-    <div className="relative">
-      <div className={`flex items-center bg-neutral-800 border ${error ? "border-red-700" : "border-neutral-700"} rounded-xl overflow-hidden ${className}`}>
+    <div className={className}>
+      <div
+        className={`pill-input flex items-center ${SIZE_STYLES[size]} ${
+          error ? "border-[var(--error)]" : ""
+        }`}
+      >
         <input
           type="text"
           value={raw}
           onChange={(e) => setRaw(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && onEnter?.()}
           placeholder={placeholder}
-          className="flex-1 bg-transparent px-4 py-3 text-lg text-neutral-100 placeholder:text-neutral-500 outline-none"
+          className="flex-1 bg-transparent text-[var(--text)] placeholder:text-[var(--muted)] outline-none font-medium"
           spellCheck={false}
           autoComplete="off"
           autoCapitalize="none"
         />
-        <span className="px-4 text-neutral-400 text-lg font-mono">{suffix}</span>
+        <span className="text-[var(--muted)] font-mono ml-2 select-none">{suffix}</span>
       </div>
-      {error && (
-        <p className="text-xs text-red-400 mt-1">{error}</p>
-      )}
+      {error && <p className="text-[12px] text-[var(--error)] mt-2 ml-2">{error}</p>}
     </div>
   );
 }

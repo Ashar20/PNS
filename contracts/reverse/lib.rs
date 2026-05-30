@@ -6,31 +6,9 @@ pub mod reverse_registrar {
     use ink::prelude::string::String;
     use ink::storage::Mapping;
 
-    #[ink::trait_definition]
-    pub trait IRegistry {
-        #[ink(message)]
-        fn owner(&self, node: [u8; 32]) -> AccountId;
-        #[ink(message)]
-        fn is_approved_for_all(&self, owner: AccountId, operator: AccountId) -> bool;
-        #[ink(message)]
-        fn set_subnode_owner(
-            &mut self,
-            node: [u8; 32],
-            label_hash: [u8; 32],
-            new_owner: AccountId,
-        ) -> Option<[u8; 32]>;
-    }
-
-    #[ink::trait_definition]
-    pub trait IResolver {
-        #[ink(message)]
-        fn set_text(
-            &mut self,
-            node: [u8; 32],
-            key: ink::prelude::string::String,
-            value: ink::prelude::string::String,
-        );
-    }
+    // Registry selectors (blake2b of message name, first 4 bytes big-endian):
+    // is_approved_for_all = 0x0f5922e9
+    const SEL_IS_APPROVED_FOR_ALL: [u8; 4] = [0x0f, 0x59, 0x22, 0xe9];
 
     #[ink(storage)]
     pub struct ReverseRegistrar {
@@ -108,12 +86,23 @@ pub mod reverse_registrar {
         #[ink(message)]
         pub fn claim_for(&mut self, account: AccountId, name: String) -> Result<()> {
             let caller = self.env().caller();
-            // Caller must be the account itself, or an approved operator
-            let registry: ink::contract_ref!(IRegistry) = self.registry.into();
-            let is_self = caller == account;
-            let is_approved = registry.is_approved_for_all(account, caller);
-            if !is_self && !is_approved {
-                return Err(Error::NotAuthorized);
+            // Self-claim (set_name path): no registry cross-call needed.
+            if caller != account {
+                use ink::env::call::{build_call, ExecutionInput, Selector};
+                let approved: bool = build_call::<ink::env::DefaultEnvironment>()
+                    .call(self.registry)
+                    .ref_time_limit(5_000_000_000)
+                    .proof_size_limit(11_990_383_647_911_208_550)
+                    .exec_input(
+                        ExecutionInput::new(Selector::new(SEL_IS_APPROVED_FOR_ALL))
+                            .push_arg(account)
+                            .push_arg(caller),
+                    )
+                    .returns::<bool>()
+                    .invoke();
+                if !approved {
+                    return Err(Error::NotAuthorized);
+                }
             }
             self.primary_names.insert(account, &name);
             self.env().emit_event(ReverseClaimed { account, name: name.clone() });

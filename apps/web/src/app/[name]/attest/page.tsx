@@ -45,28 +45,28 @@ export default function AttestPage() {
 
   return (
     <div className="max-w-lg mx-auto space-y-6">
-      <h2 className="text-2xl font-bold text-neutral-100">
-        Attest about <span className="text-violet-400">{subjectName}</span>
+      <h2 className="text-2xl font-bold text-[var(--text)]">
+        Attest about <span className="text-[var(--accent)]">{subjectName}</span>
       </h2>
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm text-neutral-400 mb-1">Your name (issuer)</label>
+          <label className="block text-sm text-[var(--muted)] mb-1">Your name (issuer)</label>
           <input
             type="text"
             value={issuerName}
             onChange={(e) => setIssuerName(e.target.value)}
             placeholder="your-name.pot"
-            className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-neutral-100 outline-none focus:border-violet-600"
+            className="w-full bg-[var(--paper)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)]"
           />
         </div>
 
         <div>
-          <label className="block text-sm text-neutral-400 mb-1">Schema</label>
+          <label className="block text-sm text-[var(--muted)] mb-1">Schema</label>
           <select
             value={schema}
             onChange={(e) => setSchema(e.target.value)}
-            className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-neutral-100"
+            className="w-full bg-[var(--paper)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--text)]"
           >
             {SCHEMA_LIST.map((s) => (
               <option key={s} value={s}>{s}</option>
@@ -75,31 +75,31 @@ export default function AttestPage() {
         </div>
 
         <div>
-          <label className="block text-sm text-neutral-400 mb-1">Payload</label>
+          <label className="block text-sm text-[var(--muted)] mb-1">Payload</label>
           <textarea
             value={payload}
             onChange={(e) => setPayload(e.target.value)}
             placeholder='e.g. "backend rust"'
             rows={3}
-            className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-neutral-100 outline-none focus:border-violet-600 resize-none"
+            className="w-full bg-[var(--paper)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--text)] outline-none focus:border-[var(--accent)] resize-none"
           />
         </div>
 
         <button
           onClick={handleAttest}
           disabled={status === "attesting" || !selected || !issuerName || !payload}
-          className="w-full py-3 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 text-white font-semibold rounded-xl transition-colors"
+          className="w-full py-3 bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-40 text-white font-semibold rounded-xl transition-colors"
         >
           {status === "attesting" ? "Submitting…" : "Submit Attestation"}
         </button>
 
         {status === "done" && (
-          <div className="bg-green-900/20 border border-green-800 rounded-xl px-4 py-3 text-sm text-green-300">
+          <div className="bg-[var(--success)]/10 border border-[var(--success)]/25 rounded-xl px-4 py-3 text-sm text-[var(--success)]">
             Attestation submitted successfully.
           </div>
         )}
         {status === "error" && (
-          <div className="bg-red-900/20 border border-red-800 rounded-xl px-4 py-3 text-sm text-red-300">
+          <div className="bg-[var(--error)]/10 border border-[var(--error)]/25 rounded-xl px-4 py-3 text-sm text-[var(--error)]">
             {errMsg}
           </div>
         )}

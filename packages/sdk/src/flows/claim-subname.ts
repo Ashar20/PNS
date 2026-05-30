@@ -5,7 +5,7 @@ import { signAndSend } from "../utils.js";
 import { normaliseLabel } from "../namehash.js";
 import { buildIssueSubnameTx, buildRevokeSubnameTx } from "../contracts/community.js";
 import { roleToProxyType, buildAddProxy, buildRemoveProxy } from "../pallets/proxy.js";
-import { wrapAsMulti } from "../pallets/multisig.js";
+import { wrapAsMulti, deriveMultisigAddress } from "../pallets/multisig.js";
 import { stringToU8a } from "@polkadot/util";
 
 /**
@@ -17,7 +17,9 @@ import { stringToU8a } from "@polkadot/util";
  *   3. proxy.addProxy    (grants role-mapped proxy to the member)
  *
  * The batch is wrapped in multisig.asMulti so the community's M-of-N multisig
- * must co-sign.
+ * must co-sign. identity.setSubs and proxy.addProxy run as the multisig (the
+ * community account), so `subsOf` must be read for the multisig — not the
+ * registrar contract address.
  */
 export async function claimSubname(
   api: ApiPromise,
@@ -34,13 +36,16 @@ export async function claimSubname(
     opts.role
   );
 
-  // Read current subs, append new member
-  const subsResult = await api.query.identity.subsOf(
-    // community account is derived from the multisig signers
-    opts.communityRegistrarAddress  // proxy: use registrar address as stand-in
+  // The multisig is the community account. Derived from sorted (firstSigner +
+  // otherSignatories) and the threshold.
+  const communityAccount = deriveMultisigAddress(
+    [opts.firstSigner.address, ...opts.otherSignatories],
+    opts.threshold
   );
-  // setSubs replaces the entire list — read first, add, write
-  const [_deposit, existingSubs] = subsResult as unknown as [unknown, [string, { Raw?: string }][]];
+
+  // setSubs replaces the entire list — read first, append, write.
+  const subsResult = await api.query.identity.subsOf(communityAccount);
+  const [, existingSubs] = subsResult as unknown as [unknown, [string, { Raw?: string }][]];
   const updatedSubs = [
     ...Array.from(existingSubs),
     [opts.member, { Raw: opts.label }],
@@ -71,7 +76,11 @@ export async function revokeSubname(
     opts.label
   );
 
-  const subsResult = await api.query.identity.subsOf(opts.communityRegistrarAddress);
+  const communityAccount = deriveMultisigAddress(
+    [opts.firstSigner.address, ...opts.otherSignatories],
+    opts.threshold
+  );
+  const subsResult = await api.query.identity.subsOf(communityAccount);
   const [, existingSubs] = subsResult as unknown as [unknown, [string, unknown][]];
   const updatedSubs = Array.from(existingSubs).filter(
     ([acct]) => acct.toString() !== opts.memberAccount

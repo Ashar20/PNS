@@ -6,24 +6,26 @@ import { CodeBlock } from "./CodeBlock";
 /**
  * In-app developer docs for @pns/sdk — the ENS-shaped TypeScript SDK for Portaldot.
  * Three-column docs layout: grouped sidebar · content · "on this page" rail.
- * Leads with ENS↔PNS parity (drop-in framing). All signatures mirror the real SDK.
+ * Reference uses parameter tables (name · type · description) rather than prose,
+ * with clear section dividers and a generous type scale.
  */
 
 /* ── presentational atoms ─────────────────────────────────────────────────── */
 
 function H1({ children }: { children: ReactNode }) {
   return (
-    <h1 className="text-[var(--text)] font-semibold tracking-[-0.025em] text-[42px] leading-[1.04]">
+    <h1 className="text-[var(--text)] font-semibold tracking-[-0.025em] text-[42px] leading-[1.05]">
       {children}
     </h1>
   );
 }
 
+/** Section heading with a hairline divider above it for clear separation. */
 function H2({ id, children }: { id: string; children: ReactNode }) {
   return (
     <h2
       id={id}
-      className="group mt-16 mb-1 text-[var(--text)] font-semibold tracking-[-0.01em] text-[23px] scroll-mt-28 flex items-center gap-2"
+      className="group mt-20 pt-10 border-t border-[var(--border)] mb-2 text-[var(--text)] font-semibold tracking-[-0.01em] text-[24px] leading-tight scroll-mt-28 flex items-center gap-2"
     >
       {children}
       <a
@@ -39,17 +41,13 @@ function H2({ id, children }: { id: string; children: ReactNode }) {
 
 function P({ children }: { children: ReactNode }) {
   return (
-    <p className="mt-4 text-[var(--text-2)] text-[16px] leading-[1.75] max-w-[680px]">
-      {children}
-    </p>
+    <p className="mt-5 text-[var(--text-2)] text-[16px] leading-[1.8] max-w-[680px]">{children}</p>
   );
 }
 
 function Lead({ children }: { children: ReactNode }) {
   return (
-    <p className="mt-5 text-[var(--text-2)] text-[20px] leading-[1.6] max-w-[700px]">
-      {children}
-    </p>
+    <p className="mt-6 text-[var(--text-2)] text-[20px] leading-[1.6] max-w-[700px]">{children}</p>
   );
 }
 
@@ -68,10 +66,7 @@ function Callout({ tone = "note", children }: { tone?: "note" | "tip"; children:
   } as const;
   const t = map[tone];
   return (
-    <div
-      className="mt-6 rounded-[12px] px-5 py-4 max-w-[680px]"
-      style={{ background: t.bg, borderLeft: `3px solid ${t.bar}` }}
-    >
+    <div className="mt-6 rounded-[12px] px-5 py-4 max-w-[680px]" style={{ background: t.bg, borderLeft: `3px solid ${t.bar}` }}>
       <p className="font-mono text-[11px] tracking-[0.14em] uppercase mb-1.5" style={{ color: t.ink }}>
         {t.label}
       </p>
@@ -82,16 +77,54 @@ function Callout({ tone = "note", children }: { tone?: "note" | "tip"; children:
   );
 }
 
-function Method({ sig, returns, children }: { sig: string; returns?: string; children: ReactNode }) {
+type Param = { name: string; type: string; desc: string; optional?: boolean };
+
+/** Parameter table — clearer than inline prose for an API reference. */
+function ParamTable({ params }: { params: Param[] }) {
   return (
-    <div className="mt-5 rounded-[12px] border border-[var(--border)] bg-[var(--surface)] overflow-hidden max-w-[700px]">
-      <div className="px-4 py-2.5 bg-[var(--paper)] border-b border-[var(--border)]">
-        <p className="font-mono text-[13.5px] break-words">
-          <span className="text-[var(--accent)]">{sig}</span>
-          {returns && <span className="text-[var(--muted)]"> → {returns}</span>}
-        </p>
+    <div className="mt-4 rounded-[10px] border border-[var(--border)] overflow-hidden">
+      <div className="grid grid-cols-[180px_1fr] bg-[var(--paper)] px-4 py-2 border-b border-[var(--border)] font-mono text-[11px] tracking-[0.1em] uppercase text-[var(--muted)]">
+        <span>Parameter</span>
+        <span>Description</span>
       </div>
-      <p className="px-4 py-3 text-[var(--text-2)] text-[14.5px] leading-relaxed">{children}</p>
+      {params.map((p, i) => (
+        <div
+          key={p.name}
+          className="grid grid-cols-[180px_1fr] px-4 py-3 bg-[var(--surface)]"
+          style={{ borderTop: i > 0 ? "1px solid var(--border)" : "none" }}
+        >
+          <div className="pr-3">
+            <span className="font-mono text-[13px] text-[var(--accent-text)]">{p.name}</span>
+            {p.optional && <span className="ml-1.5 text-[11px] text-[var(--muted)]">opt</span>}
+            <span className="block font-mono text-[11px] text-[var(--muted)] mt-0.5">{p.type}</span>
+          </div>
+          <span className="text-[14px] text-[var(--text-2)] leading-relaxed">{p.desc}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** A method reference block: name · returns · one-line summary · optional param table. */
+function Method({
+  name,
+  returns,
+  desc,
+  params,
+}: {
+  name: string;
+  returns: string;
+  desc: ReactNode;
+  params?: Param[];
+}) {
+  return (
+    <div className="mt-8 max-w-[720px]">
+      <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+        <span className="font-mono text-[15.5px] font-semibold text-[var(--accent)]">{name}</span>
+        <span className="font-mono text-[13px] text-[var(--muted)]">→ {returns}</span>
+      </div>
+      <p className="mt-2.5 text-[var(--text-2)] text-[15px] leading-relaxed">{desc}</p>
+      {params && params.length > 0 && <ParamTable params={params} />}
     </div>
   );
 }
@@ -118,8 +151,8 @@ function ParityTable() {
       {rows.map(([task, ens, pns], i) => (
         <div
           key={task}
-          className="grid grid-cols-[140px_1fr_1fr] px-5 py-2.5 items-center text-[12.5px] bg-[var(--surface)]"
-          style={{ borderBottom: i < rows.length - 1 ? "1px solid var(--border)" : "none" }}
+          className="grid grid-cols-[140px_1fr_1fr] px-5 py-3 items-center text-[12.5px] bg-[var(--surface)]"
+          style={{ borderTop: i > 0 ? "1px solid var(--border)" : "none" }}
         >
           <span className="text-[var(--text)] font-medium">{task}</span>
           <span className="font-mono text-[var(--muted)]">{ens}</span>
@@ -133,13 +166,7 @@ function ParityTable() {
 /* ── sections ─────────────────────────────────────────────────────────────── */
 
 type TocItem = { id: string; label: string };
-type Section = {
-  id: string;
-  group: string;
-  label: string;
-  toc: TocItem[];
-  render: () => ReactNode;
-};
+type Section = { id: string; group: string; label: string; toc: TocItem[]; render: () => ReactNode };
 
 const SECTIONS: Section[] = [
   {
@@ -158,18 +185,14 @@ const SECTIONS: Section[] = [
         </H1>
         <Lead>
           <Code>@pns/sdk</Code> is a typed TypeScript client for the Portaldot Name
-          Service. If you&rsquo;ve used <Code>ens.js</Code>, the surface feels immediately
-          familiar — <Code>namehash</Code>, resolution, reverse lookup, text records,
-          registration. What changes is the engine: ink! contracts for the name graph,
-          composed with Portaldot&rsquo;s native pallets via <Code>utility.batchAll</Code>.
+          Service. If you&rsquo;ve used <Code>ens.js</Code>, the surface feels familiar —{" "}
+          <Code>namehash</Code>, resolution, reverse lookup, text records, registration.
+          The engine underneath is different: ink! contracts for the name graph, composed
+          with Portaldot&rsquo;s native pallets via <Code>utility.batchAll</Code>.
         </Lead>
 
         <H2 id="drop-in">Drop-in for ENS developers</H2>
-        <P>
-          The mental model maps one-to-one. Where ENS leans on a constellation of
-          third-party contracts (Safe, EAS, NameWrapper), PNS reaches straight for the
-          chain&rsquo;s native pallets.
-        </P>
+        <P>The mental model maps one-to-one:</P>
         <ParityTable />
         <Callout tone="tip">
           Already wrote an ENS integration? Swap <Code>provider.resolveName</Code> for{" "}
@@ -180,8 +203,8 @@ const SECTIONS: Section[] = [
         <P>
           A single <Code>PNSClient</Code> for resolution, registration, communities,
           attestations, identity, and bounties — plus standalone <Code>namehash</Code>{" "}
-          utilities and composable flow builders. Built on <Code>@polkadot/api</Code> and{" "}
-          <Code>@polkadot/api-contract</Code>; runs in the browser and in Node.
+          utilities and composable flow builders. Built on <Code>@polkadot/api</Code>; runs
+          in the browser and in Node.
         </P>
       </div>
     ),
@@ -205,14 +228,14 @@ pnpm add @pns/sdk @polkadot/api @polkadot/api-contract @polkadot/util-crypto
 npm install @pns/sdk @polkadot/api @polkadot/api-contract @polkadot/util-crypto`}
         />
         <P>
-          The SDK is ESM-only and ships its own types. There is no EVM tooling in the
-          stack — no ethers, viem, or Hardhat. PNS is ink! and Substrate end to end.
+          The SDK is ESM-only and ships its own types. There is no EVM tooling in the stack
+          — no ethers, viem, or Hardhat. PNS is ink! and Substrate end to end.
         </P>
 
         <H2 id="abis">Contract ABIs</H2>
         <P>
-          Contract reads and writes need the deployed ABIs. Load them once and hand them
-          to the client with <Code>setAbis()</Code>.
+          Contract reads and writes need the deployed ABIs. Load them once and hand them to
+          the client with <Code>setAbis()</Code>.
         </P>
         <CodeBlock
           code={`import registry from "./abis/registry.json";
@@ -261,8 +284,8 @@ await pns.disconnect();`}
         />
         <P>
           <Code>resolveName</Code> returns a <Code>ResolvedName</Code>: owner, resolver,
-          address record, all text records, contenthash, and expiry — everything you need
-          to render a profile in one call.
+          address record, text records, contenthash, and expiry — everything to render a
+          profile in one call.
         </P>
       </div>
     ),
@@ -293,63 +316,130 @@ client.setAbis(abis);`}
         />
 
         <H2 id="resolution">Resolution</H2>
-        <Method sig="resolveName(name: string)" returns="Promise<ResolvedName>">
-          Forward resolution. Owner, resolver, <Code>addr</Code>, all text records,
-          contenthash, and expiry.
-        </Method>
-        <Method sig="resolveAddress(addr: string)" returns="Promise<string | null>">
-          Reverse lookup — the primary name set for an account, or <Code>null</Code>.
-        </Method>
-        <Method sig="getTextRecords(name: string)" returns="Promise<Record<string,string>>">
-          All key/value text records on the name&rsquo;s resolver.
-        </Method>
-        <Method sig="getContenthash(name: string)" returns="Promise<string | null>">
-          The contenthash record (CIDv1, etc.), if set.
-        </Method>
+        <Method
+          name="resolveName(name)"
+          returns="Promise<ResolvedName>"
+          desc="Forward resolution. Owner, resolver, address, text records, contenthash, expiry."
+          params={[{ name: "name", type: "string", desc: 'Full name, e.g. "leo.pot".' }]}
+        />
+        <Method
+          name="resolveAddress(addr)"
+          returns="Promise<string | null>"
+          desc="Reverse lookup — the primary name set for an account, or null."
+          params={[{ name: "addr", type: "string", desc: "SS58 account address." }]}
+        />
+        <Method
+          name="getTextRecords(name)"
+          returns="Promise<Record<string,string>>"
+          desc="All key/value text records on the name's resolver."
+          params={[{ name: "name", type: "string", desc: "Full name." }]}
+        />
+        <Method
+          name="getContenthash(name)"
+          returns="Promise<string | null>"
+          desc="The contenthash record (CIDv1, etc.), if set."
+          params={[{ name: "name", type: "string", desc: "Full name." }]}
+        />
 
         <H2 id="registration">Registration</H2>
-        <Method sig="registerName(name, owner, signer, identityFields?)" returns="Promise<TxResult>">
-          Register a <Code>.pot</Code> name FCFS, paying the flat price in POT. Optionally
-          batches <Code>identity.setIdentity</Code> so the name shows up natively in every
-          Substrate wallet.
-        </Method>
+        <Method
+          name="registerName(name, owner, signer, identityFields?)"
+          returns="Promise<TxResult>"
+          desc="Register a .pot name FCFS, paying the flat price in POT."
+          params={[
+            { name: "name", type: "string", desc: 'Name to register, e.g. "leo.pot".' },
+            { name: "owner", type: "string", desc: "SS58 address that will own the name." },
+            { name: "signer", type: "KeyringPair", desc: "Account that signs and pays in POT." },
+            {
+              name: "identityFields",
+              type: "ProfileFields",
+              optional: true,
+              desc: "If given, batches identity.setIdentity so the name shows natively in wallets.",
+            },
+          ]}
+        />
 
         <H2 id="communities">Communities</H2>
-        <Method sig="createCommunity(opts: CreateCommunityOpts)" returns="Promise<CommunityHandle>">
-          Derive the multisig account, register the parent name to it, and wire up a{" "}
-          <Code>CommunityRegistrar</Code>.
-        </Method>
-        <Method sig="issueSubname(opts: IssueSubnameOpts)" returns="Promise<TxResult>">
-          The headline flow — one <Code>batchAll</Code>: subname + sub-identity + scoped
-          proxy. See <Code>Flows</Code>.
-        </Method>
-        <Method sig="revokeSubname(opts: RevokeSubnameOpts)" returns="Promise<TxResult>">
-          The reverse cascade — drops the subname, sub-identity, and proxy together.
-        </Method>
-        <Method sig="listMembers(parentName: string)" returns="Promise<Member[]>">
-          Every member of a community: label, account, role, full subname.
-        </Method>
+        <Method
+          name="createCommunity(opts)"
+          returns="Promise<CommunityHandle>"
+          desc="Derive the multisig account, register the parent name to it, and wire up a CommunityRegistrar."
+          params={[
+            {
+              name: "opts",
+              type: "CreateCommunityOpts",
+              desc: "parentLabel, signers[], threshold, openMembership, firstSigner.",
+            },
+          ]}
+        />
+        <Method
+          name="issueSubname(opts)"
+          returns="Promise<TxResult>"
+          desc="The headline flow — one batchAll: subname + sub-identity + scoped proxy. See Flows."
+          params={[{ name: "opts", type: "IssueSubnameOpts", desc: "parentName, label, member, role, signers, threshold." }]}
+        />
+        <Method
+          name="revokeSubname(opts)"
+          returns="Promise<TxResult>"
+          desc="The reverse cascade — drops the subname, sub-identity, and proxy together."
+          params={[{ name: "opts", type: "RevokeSubnameOpts", desc: "parentName, label, memberAccount, signers, threshold." }]}
+        />
+        <Method
+          name="listMembers(parentName)"
+          returns="Promise<Member[]>"
+          desc="Every member of a community: label, account, role, full subname."
+          params={[{ name: "parentName", type: "string", desc: 'e.g. "bandit-dao.pot".' }]}
+        />
 
         <H2 id="attestations">Attestations</H2>
-        <Method sig="attest(opts: AttestOpts)" returns="Promise<{ id } & TxResult>">
-          Issue a peer attestation (any name about any name) under a schema string.
-        </Method>
-        <Method sig="listAttestationsForSubject(name, schema?)" returns="Promise<AttestationRecord[]>">
-          All attestations about a subject, optionally filtered by schema.
-        </Method>
+        <Method
+          name="attest(opts)"
+          returns="Promise<{ id } & TxResult>"
+          desc="Issue a peer attestation (any name about any name) under a schema string."
+          params={[{ name: "opts", type: "AttestOpts", desc: "issuerName, subjectName, schema, payload, signer." }]}
+        />
+        <Method
+          name="listAttestationsForSubject(name, schema?)"
+          returns="Promise<AttestationRecord[]>"
+          desc="All attestations about a subject, optionally filtered by schema."
+          params={[
+            { name: "name", type: "string", desc: "Subject name." },
+            { name: "schema", type: "string", optional: true, desc: 'e.g. "endorsement.skill".' },
+          ]}
+        />
 
         <H2 id="identity-bounties">Identity & Bounties</H2>
-        <Method sig="setProfile(name, fields, signer)" returns="Promise<TxResult>">
-          Write native <Code>pallet_identity</Code> fields (display, web, twitter, …).
-        </Method>
-        <Method sig="provideJudgement(regIndex, target, judgement, hash, signer)" returns="Promise<TxResult>">
-          A community registrar marks a member <Code>Reasonable</Code> or{" "}
-          <Code>KnownGood</Code> — the verified badge.
-        </Method>
-        <Method sig="postBounty(opts) · claimBounty(opts)" returns="Promise<TxResult>">
-          Open a treasury bounty; on claim, the bounty id is written as a{" "}
-          <Code>contribution.&lt;id&gt;</Code> text record on the contributor&rsquo;s subname.
-        </Method>
+        <Method
+          name="setProfile(name, fields, signer)"
+          returns="Promise<TxResult>"
+          desc="Write native pallet_identity fields (display, web, twitter, …)."
+          params={[
+            { name: "name", type: "string", desc: "The name being edited." },
+            { name: "fields", type: "ProfileFields", desc: "Identity fields to set." },
+            { name: "signer", type: "KeyringPair", desc: "Owner account." },
+          ]}
+        />
+        <Method
+          name="provideJudgement(regIndex, target, judgement, hash, signer)"
+          returns="Promise<TxResult>"
+          desc="A community registrar marks a member Reasonable or KnownGood — the verified badge."
+          params={[
+            { name: "regIndex", type: "number", desc: "Registrar index." },
+            { name: "target", type: "string", desc: "Account being judged." },
+            { name: "judgement", type: '"Reasonable" | "KnownGood"', desc: "The judgement level." },
+            { name: "hash", type: "Uint8Array", desc: "Identity hash being judged." },
+            { name: "signer", type: "KeyringPair", desc: "The registrar account." },
+          ]}
+        />
+        <Method
+          name="postBounty(opts) · claimBounty(opts)"
+          returns="Promise<TxResult>"
+          desc="Open a treasury bounty; on claim, the bounty id is written as a contribution.<id> text record on the contributor's subname."
+          params={[
+            { name: "PostBountyOpts", type: "value, description, signer", desc: "Propose a bounty." },
+            { name: "ClaimBountyOpts", type: "bountyId, subnameName, description, signer", desc: "Claim it + record the contribution." },
+          ]}
+        />
       </div>
     ),
   },
@@ -403,17 +493,21 @@ await client.issueSubname(opts); // builds and signs the above`}
         </Callout>
 
         <H2 id="other-flows">Other flows</H2>
-        <Method sig="registerName(api, opts)" returns="Promise<TxResult>">
-          Register a <Code>.pot</Code> name and point its resolver, optionally batching{" "}
-          <Code>setIdentity</Code>. Also exposed as <Code>buildRegisterNameTx</Code>.
-        </Method>
-        <Method sig="attestFlow(api, addr, abi, opts)" returns="Promise<TxResult & { id }>">
-          Normalises issuer/subject names to nodes and submits the attestation.
-        </Method>
-        <Method sig="saveProfile(api, opts)" returns="Promise<TxResult & { txCount }>">
-          Diffs changed records and writes only what changed. Pair with{" "}
-          <Code>diffRecords(previous, next)</Code>.
-        </Method>
+        <Method
+          name="registerName(api, opts)"
+          returns="Promise<TxResult>"
+          desc="Register a .pot name and point its resolver, optionally batching setIdentity. Also exposed as buildRegisterNameTx."
+        />
+        <Method
+          name="attestFlow(api, addr, abi, opts)"
+          returns="Promise<TxResult & { id }>"
+          desc="Normalises issuer/subject names to nodes and submits the attestation."
+        />
+        <Method
+          name="saveProfile(api, opts)"
+          returns="Promise<TxResult & { txCount }>"
+          desc="Diffs changed records and writes only what changed. Pair with diffRecords(previous, next)."
+        />
 
         <H2 id="role-proxy">Role → proxy mapping</H2>
         <P>The role string a community assigns maps to a native Substrate proxy type:</P>
@@ -457,18 +551,10 @@ namehashHex("leo.pot");            // "0x..." hex string
 labelHash("leo");                  // Uint8Array(32) - keccak256 of one label
 normaliseName("Leo.POT");          // "leo.pot" - UTS46 lowercase`}
         />
-        <Method sig="namehash(name: string)" returns="Uint8Array">
-          The 32-byte node identifier. Empty name returns the zero node.
-        </Method>
-        <Method sig="namehashHex(name: string)" returns="string">
-          Same, as a <Code>0x</Code> hex string.
-        </Method>
-        <Method sig="labelHash(label: string)" returns="Uint8Array">
-          Keccak256 of a single label — used by the registrar for FCFS registration.
-        </Method>
-        <Method sig="normaliseName(name) · normaliseLabel(label)" returns="string">
-          UTS46 normalisation. Always normalise before hashing or comparing.
-        </Method>
+        <Method name="namehash(name)" returns="Uint8Array" desc="The 32-byte node identifier. Empty name returns the zero node." params={[{ name: "name", type: "string", desc: "Full name." }]} />
+        <Method name="namehashHex(name)" returns="string" desc="Same node, as a 0x hex string." params={[{ name: "name", type: "string", desc: "Full name." }]} />
+        <Method name="labelHash(label)" returns="Uint8Array" desc="Keccak256 of a single label — used by the registrar for FCFS registration." params={[{ name: "label", type: "string", desc: "A single label, e.g. \"leo\"." }]} />
+        <Method name="normaliseName(name) · normaliseLabel(label)" returns="string" desc="UTS46 normalisation. Always normalise before hashing or comparing." />
         <Callout tone="note">
           Normalisation happens in the SDK; contracts assume lowercase ASCII. The v1
           normaliser lowercases and applies NFKC — see the README for documented
@@ -565,13 +651,11 @@ export default function DocsPage() {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[210px_minmax(0,1fr)] xl:grid-cols-[210px_minmax(0,1fr)_180px] gap-x-10 py-10">
+    <div className="grid grid-cols-1 lg:grid-cols-[210px_minmax(0,1fr)] xl:grid-cols-[210px_minmax(0,1fr)_180px] gap-x-12 py-10">
       {/* sidebar */}
       <aside className="lg:sticky lg:top-24 self-start">
         <div className="flex items-baseline justify-between mb-7">
-          <p className="font-mono text-[13px] tracking-[0.16em] uppercase text-[var(--text)]">
-            Docs
-          </p>
+          <p className="font-mono text-[13px] tracking-[0.16em] uppercase text-[var(--text)]">Docs</p>
           <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-[var(--accent-soft)] text-[var(--accent-text)]">
             @pns/sdk
           </span>
@@ -599,10 +683,7 @@ export default function DocsPage() {
                       >
                         <span
                           className="absolute left-1 top-1/2 -translate-y-1/2 w-[3px] rounded-full transition-all"
-                          style={{
-                            height: on ? 16 : 0,
-                            background: "var(--accent)",
-                          }}
+                          style={{ height: on ? 16 : 0, background: "var(--accent)" }}
                         />
                         {s.label}
                       </button>
@@ -617,8 +698,7 @@ export default function DocsPage() {
 
       {/* content */}
       <article key={active} className="deck-fade min-w-0 max-w-[820px] pb-10">
-        {/* breadcrumb */}
-        <p className="font-mono text-[12px] text-[var(--muted)] mb-6">
+        <p className="font-mono text-[12px] text-[var(--muted)] mb-7">
           Docs <span className="text-[var(--border-strong)]">/</span> {section.group}{" "}
           <span className="text-[var(--border-strong)]">/</span>{" "}
           <span className="text-[var(--text-2)]">{section.label}</span>
@@ -626,8 +706,7 @@ export default function DocsPage() {
 
         {section.render()}
 
-        {/* prev / next pager */}
-        <div className="mt-16 pt-8 border-t border-[var(--border)] grid grid-cols-2 gap-4">
+        <div className="mt-20 pt-8 border-t border-[var(--border)] grid grid-cols-2 gap-4">
           {prev ? (
             <button
               onClick={() => goto(prev.id)}
@@ -654,9 +733,7 @@ export default function DocsPage() {
 
         <div className="mt-8 flex items-center justify-between text-[12px] text-[var(--muted)] font-mono">
           <span>PNS — Portaldot Name Service</span>
-          <a href="/deck" className="hover:text-[var(--text)] transition-colors">
-            view the pitch →
-          </a>
+          <a href="/deck" className="hover:text-[var(--text)] transition-colors">view the pitch →</a>
         </div>
       </article>
 

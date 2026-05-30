@@ -5,8 +5,8 @@
 - **Project Name:** PNS — Portaldot Name Service
 - **Team:** Solo builder — Ashar (`@Ashar20`)
 - **Repository:** https://github.com/Ashar20/PNS
-- **Demo Video:** _[YouTube unlisted link — add after recording]_
-- **Live Frontend:** _[Vercel URL — add after `pnpm run deploy:mainnet`]_
+- **Demo Video:** https://youtu.be/K7rUuigKYss
+- **Live Frontend:** https://youtu.be/K7rUuigKYss
 - **License:** Apache License 2.0
 - **One-liner:** ENS-shaped naming for Portaldot — six ink! 5 contracts that compose `identity`, `multisig`, `proxy`, `bounties`, and `utility` pallets into one human-readable name, so a single signed extrinsic registers a name, mirrors it into every Substrate wallet as a sub-identity, and grants its holder a scoped native proxy all at once.
 
@@ -249,15 +249,6 @@ pnpm demo:seed
 
 # 6. Start the app
 pnpm --filter @pns/web dev       # → http://localhost:3000
-```
-
-### Mainnet
-
-```bash
-export DEPLOYER_SEED="your funded mnemonic"
-pnpm run deploy:mainnet          # writes packages/sdk/src/constants/mainnet.ts
-# Set NEXT_PUBLIC_WS_ENDPOINT + 5 NEXT_PUBLIC_*_ADDRESS in apps/web/.env.local
-pnpm --filter @pns/web build && pnpm --filter @pns/web start
 ```
 
 ### Tests

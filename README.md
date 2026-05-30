@@ -11,9 +11,9 @@ ENS-shaped naming, ported faithfully to Portaldot's Substrate + ink! environment
 |---|---|
 | 🎥 Demo video | https://youtu.be/K7rUuigKYss |
 | 🎬 Transactions demo | [![Transactions demo](https://img.youtube.com/vi/-gWMLetXq38/maxresdefault.jpg)](https://youtu.be/-gWMLetXq38) |
-| 🌐 Live frontend | _[Vercel URL]_ |
-| 📚 In-app SDK docs | `/docs` |
-| 🪧 Pitch deck | `/deck` |
+| 🌐 Live frontend | https://pns-web.vercel.app |
+| 📚 In-app SDK docs | https://pns-web.vercel.app/docs |
+| 🪧 Pitch deck | https://pns-web.vercel.app/deck |
 
 ---
 

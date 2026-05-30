@@ -273,7 +273,7 @@ https://youtu.be/K7rUuigKYss
 
 ### Live demo
 
-https://youtu.be/K7rUuigKYss
+https://pns-web.vercel.app
 
 ### Demo scene description
 

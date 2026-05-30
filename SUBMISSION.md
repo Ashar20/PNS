@@ -267,6 +267,10 @@ pnpm --filter @pns/sdk test
 
 https://youtu.be/K7rUuigKYss
 
+### Transactions demo
+
+[![Transactions demo](https://img.youtube.com/vi/-gWMLetXq38/maxresdefault.jpg)](https://youtu.be/-gWMLetXq38)
+
 ### Live demo
 
 https://youtu.be/K7rUuigKYss

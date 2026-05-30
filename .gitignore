@@ -17,7 +17,7 @@ out/
 !.env.example
 
 # Deploy script output (addresses vary per network/node)
-packages/sdk/src/constants/local.ts
+# local.ts is kept in git as a build stub; deploy.ts overwrites it locally
 packages/sdk/src/constants/mainnet.ts
 
 # Local chain binaries

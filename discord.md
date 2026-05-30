@@ -77,9 +77,9 @@ Addresses written to packages/sdk/src/constants/local.ts
 Contract call log (name registration + attestation, real block hashes):
 ```
 [1] alice.pot → owner: 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY ✓
-[3] attest(issuer=alice.pot, subject=bob.pot, schema=endorsement.skill)
+[3] attest(issuer=leo2.pot, subject=silas2.pot, schema=endorsement.skill)
     SUCCESS ✓
-    block: 0xcc0a6c53fa01ac4d8630132e97271b49458922c4498babd7e7d9b8d4f8abc4e1
+    block: 0x317d096fc4f89a93db833ca489b6aa5bae8bca4b46bda8aaa62392e215f98bff
     Attestation IDs: [0, 4]
 ```
 
